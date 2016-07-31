@@ -5195,6 +5195,7 @@ class MneExperiment(FileTree):
         file_name : str
             Where to save the report.
         """
+        from matplotlib import pyplot
         from mayavi import mlab
 
         mri = self.get('mri')
@@ -5204,6 +5205,7 @@ class MneExperiment(FileTree):
         report = Report(title)
 
         for subject in self:
+            mrisubject = self.get('mrisubject')
             fig = self.plot_coreg()
             fig.scene.camera.parallel_projection = True
             fig.scene.camera.parallel_scale = .175
@@ -5217,7 +5219,16 @@ class MneExperiment(FileTree):
             mlab.view(0, 270, 1, roll=90, figure=fig)
             im_left = Image.from_array(mlab.screenshot(figure=fig), 'left')
 
-            mrisubject = self.get('mrisubject')
+            mlab.close(fig)
+
+            # MRI/BEM figure
+            if is_fake_mri(self.get('mri-dir')):
+                bem_fig = None
+            else:
+                bem_fig = mne.viz.plot_bem(mrisubject, self.get('mri-sdir'),
+                                           brain_surfaces='white', show=False)
+
+            # add to report
             if subject == mrisubject:
                 title = subject
                 caption = "Coregistration for subject %s." % subject
@@ -5226,7 +5237,12 @@ class MneExperiment(FileTree):
                 caption = ("Coregistration for subject %s (MRI-subject %s)." %
                            (subject, mrisubject))
             section = report.add_section(title)
-            section.add_figure(caption, (im_front, im_left))
+            if bem_fig is None:
+                section.add_figure(caption, (im_front, im_left))
+            else:
+                section.add_figure(caption, (im_front, im_left, bem_fig))
+                pyplot.close(bem_fig)
+
         report.sign()
         report.save_html(file_name)
 
