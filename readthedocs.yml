@@ -1,0 +1,9 @@
+conda:
+  file: readthedocs_env.yml
+
+python:
+  version: 2
+  setup_py_install: true
+
+formats:
+  - none

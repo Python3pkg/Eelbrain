@@ -1,0 +1,18 @@
+name: eelbrain
+channels:
+  - conda-forge
+  - christianbrodbeck
+dependencies:
+  - python = 2.7
+  - setuptools >= 17
+  - cython >= 0.21
+  - colormath >= 2.1
+  - tqdm >= 4.8
+  - keyring >= 5
+  - pillow
+  - numpy >= 1.8
+  - numpydoc
+  - scipy >= 0.17
+  - nibabel >= 2.0
+  - matplotlib >= 1.1
+  - mne >= 0.13.1
