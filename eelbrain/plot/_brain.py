@@ -1,7 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 from __future__ import division
 
-from distutils.version import LooseVersion
 from functools import partial
 from itertools import izip
 import os
@@ -10,13 +9,12 @@ from warnings import warn
 
 from nibabel.freesurfer import read_annot
 import numpy as np
-import matplotlib as mpl
 import mne
 
-from .._data_obj import asndvar, NDVar
+from .._data_obj import asndvar, NDVar, SourceSpace
+from .._utils import deprecated
 from ..fmtxt import Image, im_table, ms
-from ._base import (EelFigure, ImLayout, ColorBarMixin, find_fig_cmaps,
-                    find_fig_vlims)
+from ._base import EelFigure, ImLayout, ColorBarMixin
 from ._colors import ColorList
 
 
@@ -94,7 +92,7 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
         else:
             raise ValueError("Neither hemisphere contains more than one label")
 
-    brain = _surfer_brain(None, subject, surf, hemi, views, w, h, axw, axh,
+    brain = _surfer_brain(subject, surf, hemi, views, w, h, axw, axh,
                           foreground, background, subjects_dir)
     brain._set_annot(annot, borders, alpha)
 
@@ -170,7 +168,7 @@ def _plot(data, *args, **kwargs):
     if data.source.kind == 'vol':
         return _voxel_brain(data, *args, **kwargs)
     else:
-        return surfer_brain(data, *args, **kwargs)
+        return brain(data, *args, **kwargs)
 
 
 def dspm(src, fmin=13, fmax=22, fmid=None, *args, **kwargs):
@@ -346,15 +344,13 @@ def cluster(cluster, vmax=None, *args, **kwargs):
     return _plot(cluster, lut, -vmax, vmax, *args, **kwargs)
 
 
-def _surfer_brain(data, subject='fsaverage', surf='smoothwm', hemi='split',
+def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
                   views=('lat', 'med'), w=None, h=None, axw=None, axh=None,
                   foreground=None, background=None, subjects_dir=None):
     """Create surfer.Brain instance
 
     Parameters
     ----------
-    data : NDVar
-        Data that is plotted.
     subject : str
         Name of the subject (default 'fsaverage').
     surf : 'inflated' | 'pial' | 'smoothwm' | 'sphere' | 'white'
@@ -414,24 +410,25 @@ def _surfer_brain(data, subject='fsaverage', surf='smoothwm', hemi='split',
     if background is None:
         background = BACKGROUND
 
-    return Brain(data, subject, hemi, surf, title=title, cortex='classic',
+    return Brain(subject, hemi, surf, title=title, cortex='classic',
                  size=(width, height), views=views, background=background,
                  foreground=foreground, subjects_dir=subjects_dir)
 
 
-def surfer_brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
-                 views=('lat', 'med'), hemi=None, colorbar=False,
-                 time_label='ms', w=None, h=None, axw=None, axh=None,
-                 foreground=None, background=None, parallel=True,
-                 smoothing_steps=None, mask=True, subjects_dir=None,
-                 colormap=None):
+def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
+          views=('lat', 'med'), hemi=None, colorbar=False, time_label='ms',
+          w=None, h=None, axw=None, axh=None, foreground=None, background=None,
+          parallel=True, smoothing_steps=None, mask=True, subjects_dir=None,
+          colormap=None):
     """Create a PySurfer Brain object with a data layer
 
     Parameters
     ----------
-    src : NDVar, dims = ([case,] source, [time])
+    src : NDVar ([case,] source, [time]) | SourceSpace
         NDVar with SourceSpace dimension. If stc contains a case dimension,
-        the average across cases is taken.
+        the average across cases is taken. If a SourceSpace, the Brain is
+        returned without adding any data and corresponding arguments are
+        ignored.
     cmap : str | array
         Colormap (name of a matplotlib colormap) or LUT array.
     vmin, vmax : scalar
@@ -476,92 +473,53 @@ def surfer_brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         warn("The colormap parameter is deprecated, use cmap instead",
              DeprecationWarning)
         cmap = colormap
-    src = asndvar(src)
-    if src.has_case:
-        src = src.summary()
+
+    if isinstance(src, SourceSpace):
+        if cmap is not None or vmin is not None or vmax is not None:
+            raise TypeError("When plotting SourceSpace, cmap, vmin and vmax "
+                            "can not be specified (got %s)" %
+                            ', '.join((cmap, vmin, vmax)))
+        ndvar = None
+        source = src
+    else:
+        ndvar = asndvar(src)
+        if ndvar.has_case:
+            ndvar = ndvar.summary()
+        source = ndvar.source
 
     if hemi is None:
-        if src.source.lh_n and src.source.rh_n:
+        if source.lh_n and source.rh_n:
             hemi = 'split'
-        elif src.source.lh_n:
+        elif source.lh_n:
             hemi = 'lh'
-        elif not src.source.rh_n:
+        elif not source.rh_n:
             raise ValueError('No data')
         else:
             hemi = 'rh'
-    elif (hemi == 'lh' and src.source.rh_n) or (hemi == 'rh' and src.source.lh_n):
-        src = src.sub(source=hemi)
+    elif (hemi == 'lh' and source.rh_n) or (hemi == 'rh' and source.lh_n):
+        if ndvar is None:
+            source = source.sub(source=hemi)
+        else:
+            ndvar = ndvar.sub(source=hemi)
+            source = ndvar.source
 
     if subjects_dir is None:
-        subjects_dir = src.source.subjects_dir
+        subjects_dir = source.subjects_dir
 
-    # colormap
-    if cmap is None or isinstance(cmap, basestring):
-        epochs = ((src,),)
-        cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
-        vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
-        meas = src.info.get('meas')
-        cmap = cmaps[meas]
-        vmin, vmax = vlims[meas]
-        # convert to LUT
-        cmap = mpl.cm.get_cmap(cmap)
-        cmap = np.round(cmap(np.arange(256)) * 255).astype(np.uint8)
-
-    brain = _surfer_brain(src, src.source.subject, surf, hemi, views, w, h,
+    brain = _surfer_brain(source.subject, surf, hemi, views, w, h,
                           axw, axh, foreground, background, subjects_dir)
-
-    # general PySurfer data args
-    alpha = 1
-    if smoothing_steps is None and src.source.kind == 'ico':
-        smoothing_steps = src.source.grade + 1
-
-    if src.has_dim('time'):
-        times = src.time.times
-        data_dims = ('source', 'time')
-        if time_label == 'ms':
-            import surfer
-            if LooseVersion(surfer.__version__) > LooseVersion('0.5'):
-                time_label = lambda x: '%s ms' % int(round(x * 1000))
-            else:
-                times = times * 1000
-                time_label = '%i ms'
-        elif time_label == 's':
-            time_label = '%.3f s'
-    else:
-        times = None
-        data_dims = ('source',)
-
-    # add data
-    if src.source.lh_n:
-        if hemi == 'lh':
-            colorbar_ = colorbar
-            colorbar = False
-            time_label_ = time_label
-            time_label = None
-        else:
-            colorbar_ = False
-            time_label_ = None
-
-        src_hemi = src.sub(source='lh')
-        data = src_hemi.get_data(data_dims)
-        vertices = src.source.lh_vertno
-        brain.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
-                       smoothing_steps, times, time_label_, colorbar_, 'lh')
-
-    if src.source.rh_n:
-        src_hemi = src.sub(source='rh')
-        data = src_hemi.get_data(data_dims)
-        vertices = src.source.rh_vertno
-        brain.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
-                       smoothing_steps, times, time_label, colorbar, 'rh')
 
     # mask
     if mask:
-        lh, rh = src.source._mask_label()
-        if src.source.lh_n and lh:
+        lh, rh = source._mask_label()
+        if source.lh_n and lh:
             brain.add_label(lh, alpha=0.5)
-        if src.source.rh_n and rh:
+        if source.rh_n and rh:
             brain.add_label(rh, alpha=0.5)
+
+    if ndvar is not None:
+        brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,
+                        time_label)
 
     # set parallel view
     if parallel:
@@ -571,6 +529,11 @@ def surfer_brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
     brain.screenshot()
 
     return brain
+
+
+@deprecated("0.25", brain)
+def surfer_brain(*args, **kwargs):
+    pass
 
 
 def _set_parallel(brain, surf):

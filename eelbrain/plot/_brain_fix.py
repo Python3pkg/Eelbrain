@@ -4,10 +4,13 @@ from distutils.version import LooseVersion
 import os
 import sys
 
+from matplotlib.cm import get_cmap
 from matplotlib.colors import ListedColormap
+import numpy as np
 
 from ..fmtxt import Image
-from ._base import backend, find_axis_params_data
+from ._base import (backend, find_axis_params_data, find_fig_cmaps,
+                    find_fig_vlims)
 from ._colors import ColorBar
 
 # pyface imports: set GUI backend (ETS don't support wxPython 3.0)
@@ -29,13 +32,95 @@ def assert_can_save_movies():
 
 class Brain(surfer.Brain):
     # Subclass that adds Eelbrain functionality to the PySurfer surfer.Brain class
-    def __init__(self, data, *args, **kwargs):
-        self.__data = data
+    def __init__(self, *args, **kwargs):
+        self.__data = None
         self.__annot = None
         surfer.Brain.__init__(self, *args, **kwargs)
 
         from traits.trait_base import ETSConfig
         self._prevent_close = ETSConfig.toolkit == 'wx'
+
+    def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
+                  smoothing_steps=None, colorbar=False, time_label='ms'):
+        """Add data layer form an NDVar
+
+        Parameters
+        ----------
+        ndvar : NDVar  (source[, time])
+            NDVar with SourceSpace dimension and optional time dimension.
+        cmap : str | array
+            Colormap (name of a matplotlib colormap) or LUT array.
+        vmin, vmax : scalar
+            Endpoints for the colormap. Need to be set explicitly if ``cmap`` is
+            a LUT array.
+        smoothing_steps : None | int
+            Number of smoothing steps if data is spatially undersampled
+            (PySurfer ``Brain.add_data()`` argument).
+        colorbar : bool
+            Add a colorbar to the figure (use ``.plot_colorbar()`` to plot a
+            colorbar separately).
+        time_label : str
+            Label to show time point. Use ``'ms'`` or ``'s'`` to display time in
+            milliseconds or in seconds, or supply a custom format string to format
+            time values (in seconds; default is ``'ms'``).
+        """
+        # colormap
+        if cmap is None or isinstance(cmap, basestring):
+            epochs = ((ndvar,),)
+            cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
+            vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
+            meas = ndvar.info.get('meas')
+            vmin, vmax = vlims[meas]
+            # convert to LUT
+            cmap = get_cmap(cmaps[meas])
+            cmap = np.round(cmap(np.arange(256)) * 255).astype(np.uint8)
+
+        # general PySurfer data args
+        alpha = 1
+        if smoothing_steps is None and ndvar.source.kind == 'ico':
+            smoothing_steps = ndvar.source.grade + 1
+
+        if ndvar.has_dim('time'):
+            times = ndvar.time.times
+            data_dims = ('source', 'time')
+            if time_label == 'ms':
+                import surfer
+                if LooseVersion(surfer.__version__) > LooseVersion('0.5'):
+                    time_label = lambda x: '%s ms' % int(round(x * 1000))
+                else:
+                    times = times * 1000
+                    time_label = '%i ms'
+            elif time_label == 's':
+                time_label = '%.3f s'
+        else:
+            times = None
+            data_dims = ('source',)
+
+        # add data
+        if ndvar.source.lh_n and self._hemi != 'rh':
+            if self._hemi == 'lh':
+                colorbar_ = colorbar
+                colorbar = False
+                time_label_ = time_label
+                time_label = None
+            else:
+                colorbar_ = False
+                time_label_ = None
+
+            src_hemi = ndvar.sub(source='lh')
+            data = src_hemi.get_data(data_dims)
+            vertices = ndvar.source.lh_vertno
+            self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
+                          smoothing_steps, times, time_label_, colorbar_, 'lh')
+
+        if ndvar.source.rh_n and self._hemi != 'lh':
+            src_hemi = ndvar.sub(source='rh')
+            data = src_hemi.get_data(data_dims)
+            vertices = ndvar.source.rh_vertno
+            self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
+                          smoothing_steps, times, time_label, colorbar, 'rh')
+
+        self.__data = ndvar
 
     def close(self):
         "Prevent close() call that causes segmentation fault"
@@ -68,7 +153,7 @@ class Brain(surfer.Brain):
             (HTML `alt` tag).
         """
         if name is None:
-            name = self.__data.name or 'brain'
+            name = getattr(self.__data, 'name', None) or 'brain'
         im = self.screenshot('rgba', True)
         return Image.from_array(im, name, format, alt)
 
@@ -104,6 +189,8 @@ class Brain(surfer.Brain):
         colorbar : :class:`~eelbrain.plot.ColorBar`
             ColorBar plot object.
         """
+        if self.__data is None:
+            raise RuntimeError("Brain has no data to plot colorbar for")
         unit = self.__data.info.get('unit', None)
         if ticks is None:
             ticks = self.__data.info.get('cmap ticks')
