@@ -97,6 +97,7 @@ class Brain(surfer.Brain):
             data_dims = ('source',)
 
         # add data
+        surfaces = []
         if ndvar.source.lh_n and self._hemi != 'rh':
             if self._hemi == 'lh':
                 colorbar_ = colorbar
@@ -112,6 +113,7 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.lh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label_, colorbar_, 'lh')
+            surfaces.append(self.data_dict['lh']['surfaces'][0])
 
         if ndvar.source.rh_n and self._hemi != 'lh':
             src_hemi = ndvar.sub(source='rh')
@@ -119,6 +121,10 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.rh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label, colorbar, 'rh')
+            surfaces.append(self.data_dict['rh']['surfaces'][0])
+
+        for s in surfaces:
+            s.actor.property.lighting = False
 
         self.__data = ndvar
 
