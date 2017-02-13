@@ -8474,10 +8474,11 @@ class SourceSpace(Dimension):
         else:
             return Dimension._index_repr(self, index)
 
-    def get_source_space(self):
+    def get_source_space(self, subjects_dir=None):
         "Read the corresponding MNE source space"
-        path = self._src_pattern.format(subjects_dir=self.subjects_dir,
-                                        subject=self.subject, src=self.src)
+        path = self._src_pattern.format(
+            subjects_dir=subjects_dir or self.subjects_dir,
+            subject=self.subject, src=self.src)
         src = mne.read_source_spaces(path)
         return src
 
@@ -8537,10 +8538,10 @@ class SourceSpace(Dimension):
                           in izip(self.vertno, other.vertno))
         return self[index]
 
-    def _mask_label(self):
+    def _mask_label(self, subjects_dir=None):
         "Create a Label that masks the areas not covered in this SourceSpace"
         lh = rh = None
-        sss = self.get_source_space()
+        sss = self.get_source_space(subjects_dir)
         if self.lh_n:
             lh_verts = np.setdiff1d(sss[0]['vertno'], self.lh_vertno)
             if len(lh_verts):

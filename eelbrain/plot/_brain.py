@@ -511,7 +511,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
 
     # mask
     if mask:
-        lh, rh = source._mask_label()
+        lh, rh = source._mask_label(subjects_dir)
         if source.lh_n and lh:
             brain.add_label(lh, alpha=0.5)
         if source.rh_n and rh:
