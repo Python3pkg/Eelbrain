@@ -95,10 +95,8 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
     brain = _surfer_brain(subject, surf, hemi, views, w, h, axw, axh,
                           foreground, background, subjects_dir)
     brain._set_annot(annot, borders, alpha)
-
     if parallel:
-        _set_parallel(brain, surf)
-
+        brain.set_parallel_scale(None if parallel is True else parallel)
     return brain
 
 
@@ -521,31 +519,14 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,
                         time_label)
 
-    # set parallel view
     if parallel:
-        _set_parallel(brain, surf)
-
-    # without this sometimes the brain position is off
-    brain.screenshot()
-
+        brain.set_parallel_scale(None if parallel is True else parallel)
     return brain
 
 
 @deprecated("0.25", brain)
 def surfer_brain(*args, **kwargs):
     pass
-
-
-def _set_parallel(brain, surf):
-    if surf == 'inflated':
-        camera_scale = 95
-    else:
-        camera_scale = 75  # was 65 for WX backend
-
-    for figs in brain._figures:
-        for fig in figs:
-            fig.scene.camera.parallel_scale = camera_scale
-            fig.scene.camera.parallel_projection = True
 
 
 def _dspm_lut(fmin, fmid, fmax, n=256):

@@ -236,3 +236,28 @@ class Brain(surfer.Brain):
                           'rh.%s.annot' % self.__annot)
 
         return annot_legend(lh, rh, *args, **kwargs)
+
+    def set_parallel_scale(self, scale=None):
+        """Set view to parallel projection
+
+        Parameters
+        ----------
+        scale : scalar
+            Mayavi parallel_scale parameter. Default is 95 for the inflated
+            surface, 75 otherwise.
+        """
+        if scale is None:
+            surf = self.geo.values()[0].surf
+            if surf == 'inflated':
+                scale = 95
+            else:
+                scale = 75  # was 65 for WX backend
+
+        for figs in self._figures:
+            for fig in figs:
+                fig.scene.camera.parallel_scale = scale
+                fig.scene.camera.parallel_projection = True
+                fig.render()
+
+        # without this sometimes the brain position is off
+        # self.screenshot()
