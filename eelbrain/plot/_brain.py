@@ -99,7 +99,7 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
                           foreground, background, cortex, subjects_dir)
     brain._set_annot(annot, borders, alpha)
     if parallel:
-        brain.set_parallel_scale(None if parallel is True else parallel)
+        brain.set_parallel_view(scale=True)
     return brain
 
 
@@ -528,7 +528,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         brain.add_mask(source, alpha, smoothing_steps, subjects_dir)
 
     if parallel:
-        brain.set_parallel_scale(None if parallel is True else parallel)
+        brain.set_parallel_view(scale=True)
     return brain
 
 

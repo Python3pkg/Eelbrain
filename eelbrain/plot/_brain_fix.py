@@ -6,6 +6,7 @@ import sys
 
 from matplotlib.cm import get_cmap
 from matplotlib.colors import ListedColormap
+from mayavi import mlab
 import numpy as np
 
 from .._data_obj import NDVar, SourceSpace
@@ -284,16 +285,20 @@ class Brain(surfer.Brain):
 
         return annot_legend(lh, rh, *args, **kwargs)
 
-    def set_parallel_scale(self, scale=None):
+    def set_parallel_view(self, forward=None, up=None, scale=None):
         """Set view to parallel projection
 
         Parameters
         ----------
+        forward : scalar
+            Move the view forward (mm).
+        up : scalar
+            Move the view upward (mm).
         scale : scalar
             Mayavi parallel_scale parameter. Default is 95 for the inflated
             surface, 75 otherwise.
         """
-        if scale is None:
+        if scale is True:
             surf = self.geo.values()[0].surf
             if surf == 'inflated':
                 scale = 95
@@ -302,9 +307,13 @@ class Brain(surfer.Brain):
 
         for figs in self._figures:
             for fig in figs:
-                fig.scene.camera.parallel_scale = scale
+                if forward is not None or up is not None:
+                    mlab.view(focalpoint=(0, forward or 0, up or 0),
+                              figure=fig)
+                if scale is not None:
+                    fig.scene.camera.parallel_scale = scale
                 fig.scene.camera.parallel_projection = True
                 fig.render()
 
         # without this sometimes the brain position is off
-        # self.screenshot()
+        self.screenshot()
