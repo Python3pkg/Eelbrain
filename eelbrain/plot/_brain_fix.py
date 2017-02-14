@@ -41,7 +41,8 @@ class Brain(surfer.Brain):
         from traits.trait_base import ETSConfig
         self._prevent_close = ETSConfig.toolkit == 'wx'
 
-    def add_mask(self, source, alpha=0.5, subjects_dir=None):
+    def add_mask(self, source, alpha=0.5, smoothing_steps=None,
+                 subjects_dir=None):
         """Add a mask shading areas that are not included in an NDVar
 
         Parameters
@@ -50,22 +51,35 @@ class Brain(surfer.Brain):
             SourceSpace.
         alpha : scalar
             Opacity of the mask layer.
+        smoothing_steps : scalar (optional)
+            Smooth transition at the mask's border.
         subjects_dir : str
             Use this directory as the subjects directory.
         """
         if isinstance(source, NDVar):
             source = source.get_dim('source')
-        assert isinstance(source, SourceSpace)
-        lh, rh = source._mask_label(subjects_dir)
-        if self._hemi == 'lh':
-            rh = None
-        elif self._hemi == 'rh':
-            lh = None
+        if not isinstance(source, SourceSpace):
+            raise TypeError("source needs to be a SourceSpace or NDVar, got "
+                            "%s" % (source,))
+        if not 0. <= alpha <= 1.:
+            raise ValueError("alpha needs to be between 0 and 1, got %s" % alpha)
 
-        if source.lh_n and lh:
-            self.add_label(lh, alpha=alpha)
-        if source.rh_n and rh:
-            self.add_label(rh, alpha=alpha)
+        if smoothing_steps is not None:
+            mask_ndvar = source._mask_ndvar(subjects_dir)
+            lut = np.zeros((256, 4), np.uint8)
+            lut[::-1, 3] = np.arange(256, dtype=np.uint8) * alpha
+            self.add_ndvar(mask_ndvar, lut, 0., 1., smoothing_steps, False, None)
+        else:
+            lh, rh = source._mask_label(subjects_dir)
+            if self._hemi == 'lh':
+                rh = None
+            elif self._hemi == 'rh':
+                lh = None
+
+            if source.lh_n and lh:
+                self.add_label(lh, alpha=alpha)
+            if source.rh_n and rh:
+                self.add_label(rh, alpha=alpha)
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms'):

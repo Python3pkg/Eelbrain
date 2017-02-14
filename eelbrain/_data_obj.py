@@ -8552,6 +8552,17 @@ class SourceSpace(Dimension):
                 rh = mne.Label(rh_verts, hemi='rh', color=(0, 0, 0)).fill(sss, 'mask-rh')
         return lh, rh
 
+    def _mask_ndvar(self, subjects_dir=None):
+        if subjects_dir is None:
+            subjects_dir = self.subjects_dir
+        sss = self.get_source_space(subjects_dir)
+        vertices = [sss[0]['vertno'], sss[1]['vertno']]
+        data = [np.in1d(vert, self_vert) for vert, self_vert in
+                izip(vertices, self.vertno)]
+        source = SourceSpace(vertices, self.subject, self.src, subjects_dir,
+                             self.parc.name)
+        return NDVar(np.concatenate(data), (source,))
+
     def set_parc(self, parc):
         """Set the source space parcellation
 
