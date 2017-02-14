@@ -8,6 +8,7 @@ from matplotlib.cm import get_cmap
 from matplotlib.colors import ListedColormap
 import numpy as np
 
+from .._data_obj import NDVar, SourceSpace
 from ..fmtxt import Image
 from ._base import (backend, find_axis_params_data, find_fig_cmaps,
                     find_fig_vlims)
@@ -39,6 +40,32 @@ class Brain(surfer.Brain):
 
         from traits.trait_base import ETSConfig
         self._prevent_close = ETSConfig.toolkit == 'wx'
+
+    def add_mask(self, source, alpha=0.5, subjects_dir=None):
+        """Add a mask shading areas that are not included in an NDVar
+
+        Parameters
+        ----------
+        source : SourceSpace
+            SourceSpace.
+        alpha : scalar
+            Opacity of the mask layer.
+        subjects_dir : str
+            Use this directory as the subjects directory.
+        """
+        if isinstance(source, NDVar):
+            source = source.get_dim('source')
+        assert isinstance(source, SourceSpace)
+        lh, rh = source._mask_label(subjects_dir)
+        if self._hemi == 'lh':
+            rh = None
+        elif self._hemi == 'rh':
+            lh = None
+
+        if source.lh_n and lh:
+            self.add_label(lh, alpha=alpha)
+        if source.rh_n and rh:
+            self.add_label(rh, alpha=alpha)
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms'):

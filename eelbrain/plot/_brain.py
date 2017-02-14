@@ -508,7 +508,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
             hemi = 'rh'
     elif (hemi == 'lh' and source.rh_n) or (hemi == 'rh' and source.lh_n):
         if ndvar is None:
-            source = source.sub(source=hemi)
+            source = source[source.dimindex(hemi)]
         else:
             ndvar = ndvar.sub(source=hemi)
             source = ndvar.source
@@ -519,17 +519,13 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
     brain = _surfer_brain(source.subject, surf, hemi, views, w, h, axw, axh,
                           foreground, background, cortex, subjects_dir)
 
-    # mask
-    if mask:
-        lh, rh = source._mask_label(subjects_dir)
-        if source.lh_n and lh:
-            brain.add_label(lh, alpha=0.5)
-        if source.rh_n and rh:
-            brain.add_label(rh, alpha=0.5)
-
     if ndvar is not None:
         brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,
                         time_label)
+
+    if mask:
+        alpha = 0.5 if mask is True else mask
+        brain.add_mask(source, alpha, smoothing_steps, subjects_dir)
 
     if parallel:
         brain.set_parallel_scale(None if parallel is True else parallel)

@@ -8545,11 +8545,11 @@ class SourceSpace(Dimension):
         if self.lh_n:
             lh_verts = np.setdiff1d(sss[0]['vertno'], self.lh_vertno)
             if len(lh_verts):
-                lh = mne.Label(lh_verts, hemi='lh', color=(0, 0, 0)).fill(sss, 'unknown')
+                lh = mne.Label(lh_verts, hemi='lh', color=(0, 0, 0)).fill(sss, 'mask-lh')
         if self.rh_n:
             rh_verts = np.setdiff1d(sss[1]['vertno'], self.rh_vertno)
             if len(rh_verts):
-                rh = mne.Label(rh_verts, hemi='rh', color=(0, 0, 0)).fill(sss, 'unknown')
+                rh = mne.Label(rh_verts, hemi='rh', color=(0, 0, 0)).fill(sss, 'mask-rh')
         return lh, rh
 
     def set_parc(self, parc):
