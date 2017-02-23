@@ -31,7 +31,7 @@ def assert_can_save_movies():
 def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
           hemi=None, views=('lat', 'med'), w=None, h=None, axw=None, axh=None,
           foreground=None, background=None, parallel=True, cortex='classic',
-          subjects_dir=None):
+          title=None, subjects_dir=None):
     """Plot the parcellation in an annotation file
 
     Parameters
@@ -62,6 +62,8 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
         Set views to parallel projection (default ``True``).
     cortex : str | tuple | dict
         See :class:`surfer.Brain`.
+    title : str
+        title for the window (default is the parcellation name).
     subjects_dir : None | str
         Override the default subjects_dir.
 
@@ -95,8 +97,11 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
         else:
             raise ValueError("Neither hemisphere contains more than one label")
 
+    if title is None:
+        title = annot
+
     brain = _surfer_brain(subject, surf, hemi, views, w, h, axw, axh,
-                          foreground, background, cortex, subjects_dir)
+                          foreground, background, cortex, title, subjects_dir)
     brain._set_annot(annot, borders, alpha)
     if parallel:
         brain.set_parallel_view(scale=True)
@@ -212,6 +217,8 @@ def dspm(src, fmin=13, fmax=22, fmid=None, *args, **kwargs):
         Set views to parallel projection (default ``True``).
     cortex : str | tuple | dict
         See :class:`surfer.Brain`.
+    title : str
+        title for the window (default is the subject name).
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
@@ -270,6 +277,8 @@ def p_map(p_map, param_map=None, p0=0.05, p1=0.01, p0alpha=0.5, *args,
         Set views to parallel projection (default ``True``).
     cortex : str | tuple | dict
         See :class:`surfer.Brain`.
+    title : str
+        title for the window (default is the subject name).
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
@@ -327,6 +336,8 @@ def cluster(cluster, vmax=None, *args, **kwargs):
         Set views to parallel projection (default ``True``).
     cortex : str | tuple | dict
         See :class:`surfer.Brain`.
+    title : str
+        title for the window (default is the subject name).
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
@@ -354,7 +365,7 @@ def cluster(cluster, vmax=None, *args, **kwargs):
 def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
                   views=('lat', 'med'), w=None, h=None, axw=None, axh=None,
                   foreground=None, background=None, cortex='classic',
-                  subjects_dir=None):
+                  title=None, subjects_dir=None):
     """Create surfer.Brain instance
 
     Parameters
@@ -375,6 +386,11 @@ def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
         Figure foreground color (i.e., the text color).
     background : mayavi color
         Figure background color.
+    cortex : str, tuple, dict, or None
+        Specifies how the cortical surface is rendered (see
+        :class:`surfer.Brain`).
+    title : str
+        title for the window (default is the subject name).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -397,7 +413,6 @@ def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
     else:
         raise ValueError("Unknown value for hemi parameter: %s" % repr(hemi))
 
-    title = None
     if w is not None:
         width = w
     elif axw is not None:
@@ -426,8 +441,8 @@ def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
 def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
           views=('lat', 'med'), hemi=None, colorbar=False, time_label='ms',
           w=None, h=None, axw=None, axh=None, foreground=None, background=None,
-          parallel=True, cortex='classic', smoothing_steps=None, mask=True,
-          subjects_dir=None, colormap=None):
+          parallel=True, cortex='classic', title=None, smoothing_steps=None,
+          mask=True, subjects_dir=None, colormap=None):
     """Create a PySurfer Brain object with a data layer
 
     Parameters
@@ -465,7 +480,10 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
     parallel : bool
         Set views to parallel projection (default ``True``).
     cortex : str | tuple | dict
-        See :class:`surfer.Brain`.
+        Specifies how the cortical surface is rendered (see
+        :class:`surfer.Brain`).
+    title : str
+        title for the window (default is the subject name).
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
@@ -517,7 +535,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         subjects_dir = source.subjects_dir
 
     brain = _surfer_brain(source.subject, surf, hemi, views, w, h, axw, axh,
-                          foreground, background, cortex, subjects_dir)
+                          foreground, background, cortex, title, subjects_dir)
 
     if ndvar is not None:
         brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,
