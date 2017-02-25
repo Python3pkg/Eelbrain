@@ -5,7 +5,7 @@ import os
 import sys
 
 from matplotlib.cm import get_cmap
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, colorConverter
 from mayavi import mlab
 import numpy as np
 
@@ -42,7 +42,7 @@ class Brain(surfer.Brain):
         from traits.trait_base import ETSConfig
         self._prevent_close = ETSConfig.toolkit == 'wx'
 
-    def add_mask(self, source, alpha=0.5, smoothing_steps=None,
+    def add_mask(self, source, alpha=0.5, color=(0, 0, 0), smoothing_steps=None,
                  subjects_dir=None):
         """Add a mask shading areas that are not included in an NDVar
 
@@ -52,6 +52,8 @@ class Brain(surfer.Brain):
             SourceSpace.
         alpha : scalar
             Opacity of the mask layer.
+        color : Sequence of 3 scalar in range [0, 1]
+            Mask color (defauls is black ``(0, 0, 0)``).
         smoothing_steps : scalar (optional)
             Smooth transition at the mask's border.
         subjects_dir : str
@@ -66,9 +68,15 @@ class Brain(surfer.Brain):
             raise ValueError("alpha needs to be between 0 and 1, got %s" % alpha)
 
         if smoothing_steps is not None:
+            # generate LUT
+            color = colorConverter.to_rgb(color)
+            lut = np.repeat(np.reshape(color, (1, 4)), 256, 0)
+            lut[:, 3] = np.linspace(alpha, 0, 256)
+            np.clip(lut, 0, 1, lut)
+            lut *= 255
+            lut = np.round(lut).astype(np.uint8)
+            # generate mask Label
             mask_ndvar = source._mask_ndvar(subjects_dir)
-            lut = np.zeros((256, 4), np.uint8)
-            lut[::-1, 3] = np.arange(256, dtype=np.uint8) * alpha
             self.add_ndvar(mask_ndvar, lut, 0., 1., smoothing_steps, False, None)
         else:
             lh, rh = source._mask_label(subjects_dir)
@@ -78,9 +86,9 @@ class Brain(surfer.Brain):
                 lh = None
 
             if source.lh_n and lh:
-                self.add_label(lh, alpha=alpha)
+                self.add_label(lh, color, alpha)
             if source.rh_n and rh:
-                self.add_label(rh, alpha=alpha)
+                self.add_label(rh, color, alpha)
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms'):

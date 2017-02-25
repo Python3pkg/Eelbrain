@@ -525,7 +525,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
 
     if mask:
         alpha = 0.5 if mask is True else mask
-        brain.add_mask(source, alpha, smoothing_steps, subjects_dir)
+        brain.add_mask(source, alpha, (0, 0, 0), smoothing_steps, subjects_dir)
 
     if parallel:
         brain.set_parallel_view(scale=True)
