@@ -757,11 +757,6 @@ class _BinTable(EelFigure, ColorBarMixin):
         n_hemis = (data.source.lh_n > 0) + (data.source.rh_n > 0)
         n_rows = len(views) * n_hemis
 
-        # Make sure app is initialized. If not, mayavi takes over the menu bar
-        # and quits after closing the window
-        from .._wxgui import get_app
-        get_app()
-
         layout = ImLayout(n_rows * n_columns, 0, 0.5, 4/3, 2, title, *args,
                           nrow=n_rows, ncol=n_columns, **kwargs)
         EelFigure.__init__(self, "BinTable", layout)

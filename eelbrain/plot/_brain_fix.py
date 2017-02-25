@@ -19,6 +19,11 @@ from ._colors import ColorBar
 if backend['ets_toolkit']:
     os.environ['ETS_TOOLKIT'] = backend['ets_toolkit']
 
+# Make sure app is initialized. If not, mayavi takes over the menu bar
+# and quits after closing the window
+from .._wxgui import get_app
+get_app()
+
 # surfer imports, lower screen logging level
 first_import = 'surfer' not in sys.modules
 import surfer
