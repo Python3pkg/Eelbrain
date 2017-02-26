@@ -188,6 +188,17 @@ def make_cmaps():
     cmap.set_bad('w', alpha=0.)
     register_cmap(cmap=cmap)
 
+    # polar-alpha: middle is transparent instead of white
+    cmap = LinearSegmentedColormap.from_list(
+        "polar-a", (
+            (0.0, (0.0, 0.0, 1.0, 1.0)),
+            (0.5, (0.0, 0.0, 1.0, 0.0)),
+            (0.5, (1.0, 0.0, 0.0, 0.0)),
+            (1.0, (1.0, 0.0, 0.0, 1.0)),
+        ))
+    cmap.set_bad('w', alpha=0.)
+    register_cmap(cmap=cmap)
+
     # xpolar ("extra-polar"): fade ends into black
     cmap = LinearSegmentedColormap.from_list(
         "xpolar", (
@@ -238,7 +249,7 @@ def make_cmaps():
 
 make_cmaps()
 
-symmetric_cmaps = ('polar', 'xpolar', 'xpolar-a',
+symmetric_cmaps = ('polar', 'polar-a', 'xpolar', 'xpolar-a',
                    'BrBG', 'BrBG_r', 'PRGn', 'PRGn_r', 'PuOr', 'PuOr_',
                    'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'seismic', 'seismic_r')
 zerobased_cmaps = ('sig',)
