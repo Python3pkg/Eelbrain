@@ -72,15 +72,14 @@ import time
 
 import matplotlib as mpl
 from matplotlib.figure import SubplotParams
-from matplotlib.ticker import FormatStrFormatter, FuncFormatter, ScalarFormatter
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 import PIL
 
 from .._utils import deprecated
 from .._utils.subp import command_exists
 from ..fmtxt import Image
-from .._colorspaces import symmetric_cmaps, zerobased_cmaps, DEFAULT_CMAPS, \
-    ALPHA_CMAPS
+from .._colorspaces import symmetric_cmaps, zerobased_cmaps, ALPHA_CMAPS
 from .._data_obj import (ascategorial, asndvar, assub, isnumeric, isdataobject,
                          cellname)
 
@@ -185,28 +184,42 @@ def configure(frame=None, autorun=None, show=None, format=None,
     backend.update(new)
 
 
-meas_display_unit = {'time': u'ms',
-                     'V': u'µV',
-                     'B': u'fT',
-                     'sensor': int}
-unit_format = {u'V': 1,
-               u'ms': 1e3,
-               u'mV': 1e3,
-               u'µV': 1e6,
-               u'pT': 1e12,
-               u'fT': 1e15,
-               u'dSPM': 1,
-               u'p': 1,
-               u'T': 1,
-               u'n': int,  # %i format
-               int: int}
-scale_formatters = {1: FuncFormatter(lambda x, pos: '%g' % x),
-                    1e3: FuncFormatter(lambda x, pos: '%g' % (1e3 * x)),
-                    1e6: FuncFormatter(lambda x, pos: '%g' % (1e6 * x)),
-                    1e9: FuncFormatter(lambda x, pos: '%g' % (1e9 * x)),
-                    1e12: FuncFormatter(lambda x, pos: '%g' % (1e12 * x)),
-                    1e15: FuncFormatter(lambda x, pos: '%g' % (1e15 * x)),
-                    int: FuncFormatter(lambda x, pos: '%i' % round(x))}
+MEAS_DISPLAY_UNIT = {
+    'time': u'ms',
+    'V': u'µV',
+    'B': u'fT',
+    'sensor': int,
+}
+UNIT_FORMAT = {
+    u'V': 1,
+    u'ms': 1e3,
+    u'mV': 1e3,
+    u'µV': 1e6,
+    u'pT': 1e12,
+    u'fT': 1e15,
+    u'dSPM': 1,
+    u'p': 1,
+    u'T': 1,
+    u'n': int,  # %i format
+    int: int,
+}
+SCALE_FORMATTERS = {
+    1: FuncFormatter(lambda x, pos: '%g' % x),
+    1e3: FuncFormatter(lambda x, pos: '%g' % (1e3 * x)),
+    1e6: FuncFormatter(lambda x, pos: '%g' % (1e6 * x)),
+    1e9: FuncFormatter(lambda x, pos: '%g' % (1e9 * x)),
+    1e12: FuncFormatter(lambda x, pos: '%g' % (1e12 * x)),
+    1e15: FuncFormatter(lambda x, pos: '%g' % (1e15 * x)),
+    int: FuncFormatter(lambda x, pos: '%i' % round(x)),
+}
+DEFAULT_CMAPS = {
+    'B': 'xpolar',
+    'V': 'xpolar',
+    'p': 'sig',
+    'f': 'viridis',
+    'r': 'xpolar',
+    't': 'xpolar',
+}
 
 
 def find_axis_params_data(v, label):
@@ -227,8 +240,8 @@ def find_axis_params_data(v, label):
         Axis label.
     """
     if isinstance(v, basestring):
-        if v in unit_format:
-            scale = unit_format[v]
+        if v in UNIT_FORMAT:
+            scale = UNIT_FORMAT[v]
             unit = v
         else:
             raise ValueError("Unknown unit: %s" % repr(v))
@@ -238,11 +251,11 @@ def find_axis_params_data(v, label):
     elif isnumeric(v):
         meas = v.info.get('meas')
         data_unit = v.info.get('unit')
-        if meas in meas_display_unit:
-            unit = meas_display_unit[meas]
-            scale = unit_format[unit]
-            if data_unit in unit_format:
-                scale /= unit_format[data_unit]
+        if meas in MEAS_DISPLAY_UNIT:
+            unit = MEAS_DISPLAY_UNIT[meas]
+            scale = UNIT_FORMAT[unit]
+            if data_unit in UNIT_FORMAT:
+                scale /= UNIT_FORMAT[data_unit]
         else:
             scale = 1
             unit = data_unit
@@ -262,7 +275,7 @@ def find_axis_params_data(v, label):
     # ScalarFormatter: disabled because it always used e notation in status bar
     # (needs separate instance because it adapts to data)
     # fmt = ScalarFormatter() if scale == 1 else scale_formatters[scale]
-    return scale_formatters[scale], label
+    return SCALE_FORMATTERS[scale], label
 
 
 def find_im_args(ndvar, overlay, vlims={}, cmaps={}):
