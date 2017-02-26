@@ -1,17 +1,4 @@
-"""
-In addition to matplotlib colormaps, the following colormaps are defined:
-
-"polar"
-    white at 0, red for positive and blue for negative values.
-"xpolar"
-    like cm_polar, but extends the range by fading red and blue into black at
-    extremes.
-"sig"
-    Significance map.
-"sigwhite"
-    Significance map where nonsignificant values are white instead of black.
-"symsig"
-    Symmetric bipolar significance map.
+"""Data-specific colormaps
 
 Meas values
 -----------
@@ -191,141 +178,67 @@ def twoway_colors(n1, n2, hue_start=0.2, hue_shift=0., hues=None):
 
 def make_cmaps():
     """Create some custom colormaps and register them with matplotlib"""
-    _cdict = {'red':   [(.0, .0, .0),
-                        (.5, 1., 1.),
-                        (1., 1., 1.)],
-              'green': [(.0, .0, .0),
-                        (.5, 1., 1.),
-                        (1., .0, .0)],
-              'blue':  [(.0, 1., 1.),
-                        (.5, 1., 1.),
-                        (1., .0, .0)]}
-    cm_polar = LinearSegmentedColormap("polar", _cdict)
-    cm_polar.set_bad('w', alpha=0.)
-    register_cmap(cmap=cm_polar)
+    # polar:  blue-white-red
+    cmap = LinearSegmentedColormap.from_list(
+        "polar", (
+            (0.0, (0.0, 0.0, 1.0)),
+            (0.5, (1.0, 1.0, 1.0)),
+            (1.0, (1.0, 0.0, 0.0)),
+        ))
+    cmap.set_bad('w', alpha=0.)
+    register_cmap(cmap=cmap)
 
-    # extra-polar: fade ends into dark
-    x = .3
-    _cdict = {'red':   [(0, 0., 0.),
-                        (0 + x, 0., 0.),
-                        (.5, 1., 1.),
-                        (1 - x, 1., 1.),
-                        (1, 0., 0.)],
-              'green': [(0, 0., 0.),
-                        (0 + x, 0., 0.),
-                        (.5, 1., 1.),
-                        (1 - x, 0., 0.),
-                        (1., 0., 0.)],
-              'blue':  [(0, 0., 0.),
-                        (0 + x, 1., 1.),
-                        (.5, 1., 1.),
-                        (1 - x, 0., 0.),
-                        (1, .0, .0)]}
-    cm_xpolar = LinearSegmentedColormap("xpolar", _cdict)
-    cm_xpolar.set_bad('w', alpha=0.)
-    register_cmap(cmap=cm_xpolar)
+    # xpolar ("extra-polar"): fade ends into black
+    cmap = LinearSegmentedColormap.from_list(
+        "xpolar", (
+            (0.0, (0.0, 0.0, 0.0)),
+            (0.3, (0.0, 0.0, 1.0)),
+            (0.5, (1.0, 1.0, 1.0)),
+            (0.7, (1.0, 0.0, 0.0)),
+            (1.0, (0.0, 0.0, 0.0)),
+        ))
+    cmap.set_bad('w', alpha=0.)
+    register_cmap(cmap=cmap)
 
     # extra-polar alpha: middle is transparent instead of white
-    _cdict = {'red':   [(0,     0., 0.),
-                        (0 + x, 0., 0.),
-                        (0.5,   0., 1.),
-                        (1 - x, 1., 1.),
-                        (1,     0., 0.)],
-              'green': [(0,     0., 0.),
-                        # (0 + x, 0., 0.),
-                        # (0.5,   0., 0.),
-                        # (1 - x, 0., 0.),
-                        (1.,    0., 0.)],
-              'blue':  [(0,     0., 0.),
-                        (0 + x, 1., 1.),
-                        (0.5,   1., 0.),
-                        (1 - x, 0., 0.),
-                        (1,     0., 0.)],
-              'alpha': [(0,     1., 1.),
-                        (0 + x, 1., 1.),
-                        (0.5,   0., 0.),
-                        (1 - x, 1., 1.),
-                        (1,     1., 1.)]}
-    cm_xpolar_a = LinearSegmentedColormap("xpolar-a", _cdict)
-    cm_xpolar_a.set_bad('w', alpha=0.)
-    register_cmap(cmap=cm_xpolar_a)
+    cmap = LinearSegmentedColormap.from_list(
+        "xpolar-a", (
+            (0.0, (0.0, 0.0, 0.0, 1.0)),
+            (0.3, (0.0, 0.0, 1.0, 1.0)),
+            (0.5, (0.0, 0.0, 1.0, 0.0)),
+            (0.5, (1.0, 0.0, 0.0, 0.0)),
+            (0.7, (1.0, 0.0, 0.0, 1.0)),
+            (1.0, (0.0, 0.0, 0.0, 1.0)),
+        ))
+    cmap.set_bad('w', alpha=0.)
+    register_cmap(cmap=cmap)
 
-    cdict = {'red':   [(0.0, 0., 0.),
-                       (0.5, 1., 1.),
-                       (1.0, 0., 0.)],
-             'green': [(0.0, 0., 0.),
-                       (0.5, 0., 0.),
-                       (1.0, 0., 0.)],
-             'blue':  [(0.0, 1., 1.),
-                       (0.5, 0., 0.),
-                       (1.0, 1., 1.)]}
-    cm_phase = LinearSegmentedColormap("phase", cdict)
-    cm_phase.set_bad('w', alpha=0.)
-    register_cmap(cmap=cm_phase)
+    # phase
+    cmap = LinearSegmentedColormap.from_list(
+        "phase", (
+            (0.0, (0.0, 0.0, 1.0)),
+            (0.5, (1.0, 0.0, 0.0)),
+            (1.0, (0.0, 0.0, 1.0)),
+        ))
+    cmap.set_bad('w', alpha=0.)
+    register_cmap(cmap=cmap)
 
-    cdict = {'red':   [(0.0, 1.0, 1.0),
-                       (1.0, 1.0, 0.0)],
-             'green': [(0.0, 1.0, 1.0),
-                       (0.1, 1.0, 1.0),
-                       (1.0, 0.0, 0.0)],
-             'blue':  [(0.0, 1.0, 1.0),
-                       (0.1, 0.0, 0.0),
-                       (1.0, 0.0, 0.0)]}
-    cmap = LinearSegmentedColormap("sig", cdict)
+    # sig:  significance map for specific vmax=0.05
+    cmap = LinearSegmentedColormap.from_list(
+        "sig", (
+            (0.0,  (1.0, 1.0, 1.0)),
+            (0.02, (1.0, 1.0, 0.0)),
+            (0.2,  (1.0, 0.5, 0.0)),
+            (1.0,  (1.0, 0.0, 0.0)),
+        ))
     cmap.set_over('k', alpha=0.)
     cmap.set_bad('b', alpha=0.)
-    register_cmap(cmap=cmap)
-
-    cdict = {'red':   [(0.00, 0.0, 0.0),  # p=0.05
-                       (0.40, 0.0, 0.0),  # p=0.01
-                       (0.49, 1.0, 1.0),  # p=0.001
-                       (0.51, 1.0, 1.0),
-                       (0.60, 1.0, 1.0),
-                       (1.00, 0.2, 0.2)],
-             'green': [(0.00, 0.0, 0.0),
-                       (0.40, 0.0, 0.0),
-                       (0.49, 0.0, 0.0),
-                       (0.50, 1.0, 1.0),
-                       (0.51, 1.0, 1.0),
-                       (0.60, 0.0, 0.0),
-                       (1.00, 0.0, 0.0)],
-             'blue':  [(0.00, 0.2, 0.2),
-                       (0.40, 1.0, 1.0),
-                       (0.49, 1.0, 1.0),
-                       (0.50, 1.0, 1.0),
-                       (0.51, 0.0, 0.0),
-                       (0.60, 0.0, 0.0),
-                       (1.00, 0.0, 0.0)]}
-    cmap = LinearSegmentedColormap("symsig", cdict, N=512)
-    cmap.set_bad('b', alpha=0.)
-    cmap.set_over('k', alpha=0.)
-    cmap.set_under('k', alpha=0.)
-    register_cmap(cmap=cmap)
-
-    # interaction cell coloring cmaps ---
-    # yellow / blue
-    seq = [(1, 1, .2),
-           ((.3, .3, .6), (.2, .8, 1)),
-           (.2, .2, 1),
-           (.6, .6, .3)]
-    val = (0, .5, 1)
-    cmap = make_seq_cmap(seq, val, "2group-yb")
-    register_cmap(cmap=cmap)
-
-    # orange / blue
-    seq = [(1, .9, .1),
-           (1, .5, .3),
-           ((.3, .6, .6), (.2, .8, 1)),
-           (.2, .2, 1),
-           (.6, .6, .3)]
-    val = (0, .25, .5, .75, 1)
-    cmap = make_seq_cmap(seq, val, "2group-ob")
     register_cmap(cmap=cmap)
 
 
 make_cmaps()
 
-symmetric_cmaps = ('polar', 'xpolar', 'xpolar-a', 'symsig',
+symmetric_cmaps = ('polar', 'xpolar', 'xpolar-a',
                    'BrBG', 'BrBG_r', 'PRGn', 'PRGn_r', 'PuOr', 'PuOr_',
                    'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'seismic', 'seismic_r')
 zerobased_cmaps = ('sig',)
@@ -406,13 +319,6 @@ def stat_info(meas, c0=None, c1=None, c2=None, tail=0, **kwargs):
     else:
         info = default_info(meas)
     info.update(kwargs)
-    return info
-
-
-def sym_sig_info(meas='p'):
-    "Info dict for bipolar, symmetric significance map"
-    p = 0.05
-    info = {'meas': meas, 'cmap': 'symsig', 'vmax': p}
     return info
 
 
