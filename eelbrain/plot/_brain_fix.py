@@ -103,7 +103,8 @@ class Brain(surfer.Brain):
                 self.add_label(rh, color, alpha)
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
-                  smoothing_steps=None, colorbar=False, time_label='ms'):
+                  smoothing_steps=None, colorbar=False, time_label='ms',
+                  lighting=True):
         """Add data layer form an NDVar
 
         Parameters
@@ -125,6 +126,9 @@ class Brain(surfer.Brain):
             Label to show time point. Use ``'ms'`` or ``'s'`` to display time in
             milliseconds or in seconds, or supply a custom format string to format
             time values (in seconds; default is ``'ms'``).
+        lighting : bool
+            The data overlay is affected by light sources (set to False to make
+            the data overlay luminescent).
         """
         # colormap
         if cmap is None or isinstance(cmap, basestring):
@@ -160,7 +164,6 @@ class Brain(surfer.Brain):
             data_dims = ('source',)
 
         # add data
-        surfaces = []
         if ndvar.source.lh_n and self._hemi != 'rh':
             if self._hemi == 'lh':
                 colorbar_ = colorbar
@@ -176,7 +179,6 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.lh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label_, colorbar_, 'lh')
-            surfaces.append(self.data_dict['lh']['surfaces'][0])
 
         if ndvar.source.rh_n and self._hemi != 'lh':
             src_hemi = ndvar.sub(source='rh')
@@ -184,10 +186,13 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.rh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label, colorbar, 'rh')
-            surfaces.append(self.data_dict['rh']['surfaces'][0])
 
-        for s in surfaces:
-            s.actor.property.lighting = False
+        if not lighting:
+            for data in self.data_dict.viewvalues():
+                if data is None:
+                    continue
+                for surface in data['surfaces']:
+                    surface.actor.property.lighting = False
 
         self.__data = ndvar
 
