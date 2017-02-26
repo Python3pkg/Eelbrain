@@ -5,7 +5,7 @@ import os
 import sys
 
 from matplotlib.cm import get_cmap
-from matplotlib.colors import ListedColormap, colorConverter
+from matplotlib.colors import Colormap, ListedColormap, colorConverter
 from mayavi import mlab
 import numpy as np
 
@@ -133,8 +133,9 @@ class Brain(surfer.Brain):
             vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
             meas = ndvar.info.get('meas')
             vmin, vmax = vlims[meas]
-            # convert to LUT
             cmap = get_cmap(cmaps[meas])
+        # convert to LUT (PySurfer can't handle ColorMap instances)
+        if isinstance(cmap, Colormap):
             cmap = np.round(cmap(np.arange(256)) * 255).astype(np.uint8)
 
         # general PySurfer data args
