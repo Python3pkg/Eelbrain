@@ -2,7 +2,7 @@
 from __future__ import division
 
 from functools import partial
-from itertools import izip
+from itertools import izip, product
 import os
 from tempfile import mkdtemp
 from warnings import warn
@@ -744,6 +744,42 @@ def _voxel_brain(data, lut, vmin, vmax):
 # - _x_bin_table_ims() wrap 'x' brain plot function
 # - _bin_table_ims() creates ims given a brain plot function
 
+class ImageTable(EelFigure, ColorBarMixin):
+    # Initialize in two steps
+    #
+    #  1) Initialize class to generate layout
+    #  2) Use ._res_h and ._res_w to generate images
+    #  3) Finalize bu calling ._add_ims()
+    #
+
+    def __init__(self, n_rows, n_columns, title=None, *args, **kwargs):
+        layout = ImLayout(n_rows * n_columns, 0, 0.5, 4/3, 2, title, *args,
+                          nrow=n_rows, ncol=n_columns, **kwargs)
+        EelFigure.__init__(self, "ImageTable", layout)
+
+        self._n_rows = n_rows
+        self._n_columns = n_columns
+        self._res_w = int(round(layout.axw * layout.dpi))
+        self._res_h = int(round(layout.axh * layout.dpi))
+
+    def _add_ims(self, ims, header, cmap_params, cmap_data):
+        for row, column in product(xrange(self._n_rows), xrange(self._n_columns)):
+            ax = self._axes[row * self._n_columns + column]
+            ax.imshow(ims[row][column])
+
+        # time labels
+        y = 0.25 / self._layout.h
+        for i, label in enumerate(header):
+            x = (0.5 + i) / self._layout.ncol
+            self.figure.text(x, y, label, va='center', ha='center')
+
+        ColorBarMixin.__init__(self, lambda: cmap_params, cmap_data)
+        self._show()
+
+    def _fill_toolbar(self, tb):
+        ColorBarMixin._fill_toolbar(self, tb)
+
+
 class _BinTable(EelFigure, ColorBarMixin):
     """Super-class"""
     def __init__(self, ndvar, tstart, tstop, tstep, im_func, surf, views, hemi,
@@ -1067,6 +1103,123 @@ def _bin_table_ims(data, hemi, views, brain_func):
 
     header = ['%i - %i ms' % (ms(t0), ms(t1)) for t0, t1 in data.info['bins']]
     return ims, header, cmap_params
+
+
+class SequencePlotter(object):
+    """Plot multiple images of the same data
+
+    Parameters
+    ----------
+    source : SourceSpace
+        Source space which to plot.
+    surf : 'inflated' | 'pial' | 'smoothwm' | 'sphere' | 'white'
+        Freesurfer surface to use as brain geometry.
+    w, h : scalar
+        Layout parameters (figure width/height).
+    foreground : mayavi color
+        Figure foreground color (i.e., the text color).
+    background : mayavi color
+        Figure background color.
+    parallel : bool
+        Set views to parallel projection (default ``True``).
+    cortex : str | tuple | dict
+        See :class:`surfer.Brain`.
+    smoothing_steps : None | int
+        Number of smoothing steps if data is spatially undersampled (pysurfer
+        ``Brain.add_data()`` argument).
+    mask : bool
+        Shade areas that are not in ``src``.
+    subjects_dir : None | str
+        Override the subjects_dir associated with the source space dimension.
+    """
+    def __init__(self, source):
+        self.source = source
+        self._data = []
+        self._time = None
+        self._bins = None
+        self._brain_args = {}
+
+    def set_brain_args(self, surf='smoothwm', foreground=None, background=None,
+                       parallel=True, cortex='classic', mask=True):
+        self._brain_args = {
+            'surf': surf, 'foreground': foreground, 'background': background,
+            'parallel': parallel, 'cortex': cortex, 'mask': mask}
+
+    def add_ndvar(self, ndvar, *args, **kwargs):
+        self._data.append(('data', ndvar, args, kwargs))
+        if ndvar.has_dim('time'):
+            if self._time is None:
+                self._time = ndvar.time
+            elif not ndvar.time == self._time:
+                raise ValueError("Incompatible time axes")
+
+            if self._bins is None and 'bins' in ndvar.info:
+                self._bins = ndvar.info['bins']
+
+    def plot_table(self, hemi=('lh', 'rh'), view=('lateral', 'medial'),
+                   *args, **kwargs):
+        """Add ims to a figure
+
+        Parameters
+        ----------
+        figure : _ImTable
+            Figure to which to add images.
+        """
+        if self._time is None:
+            raise RuntimeError("No data with time axis")
+
+        if isinstance(hemi, basestring):
+            hemis = (hemi,)
+        else:
+            hemis = hemi
+
+        if isinstance(view, basestring):
+            views = (view,)
+        else:
+            views = view
+
+        figure = ImageTable(len(hemis) * len(views), len(self._time), *args,
+                            **kwargs)
+
+        im_rows = []
+        cmap_params = None
+        cmap_data = None
+        for hemi in hemis:
+            hemi_rows = [[] for _ in views]
+
+            # plot brain
+            b = brain(self.source, hemi=hemi, views=views[0], w=figure._res_w,
+                      h=figure._res_h, time_label='', **self._brain_args)
+            # add data layers
+            for layer in self._data:
+                if layer[0] == 'data':
+                    ndvar, args, kwargs = layer[1:]
+                    b.add_ndvar(ndvar, *args, time_label='', **kwargs)
+                else:
+                    raise RuntimeError("Data of kind %r" % (layer[0],))
+            b.set_parallel_view(scale=True)
+
+            # capture images
+            for i in xrange(len(self._time)):
+                b.set_data_time_index(i)
+                for row, view in izip(hemi_rows, views):
+                    b.show_view(view)
+                    row.append(b.screenshot_single('rgba', True))
+            im_rows += hemi_rows
+
+            if cmap_params is None:
+                cmap_params = b._get_cmap_params()
+                cmap_data = self._data[-1][1]
+            b.close()
+
+        # table header
+        if self._bins is None:
+            header = ['%i ms' % ms(t) for t in self._time]
+        else:
+            header = ['%i - %i ms' % (ms(t0), ms(t1)) for t0, t1 in self._bins]
+
+        figure._add_ims(im_rows, header, cmap_params, cmap_data)
+        return figure
 
 
 def connectivity(source):
