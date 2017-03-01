@@ -108,7 +108,7 @@ class Brain(surfer.Brain):
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms',
-                  lighting=True):
+                  lighting=True, contours=None):
         """Add data layer form an NDVar
 
         Parameters
@@ -133,16 +133,29 @@ class Brain(surfer.Brain):
         lighting : bool
             The data overlay is affected by light sources (set to False to make
             the data overlay luminescent).
+        contours : bool | sequence of scalar
+            Draw contour lines instead of a solid overlay. Set to a list of
+            contour levels or ``True`` for automatic contours.
         """
+        # find standard args
+        epochs = ((ndvar,),)
+        cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
+        vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
+        meas = ndvar.info.get('meas')
+        vmin, vmax = vlims[meas]
         # colormap
-        if cmap is None or isinstance(cmap, basestring):
-            epochs = ((ndvar,),)
-            cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
-            vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
-            meas = ndvar.info.get('meas')
-            vmin, vmax = vlims[meas]
+        if contours is not None:
+            if cmap is None:
+                cmap = ('w', 'w')
+            elif isinstance(cmap, basestring):
+                if len(cmap) == 1:
+                    cmap = (cmap, cmap)
+                else:
+                    cmap = get_cmap(cmaps[meas])
+        elif cmap is None or isinstance(cmap, basestring):
             cmap = get_cmap(cmaps[meas])
-        # convert to LUT (PySurfer can't handle ColorMap instances)
+
+        # convert ColorMap to LUT (PySurfer can't handle ColorMap instances)
         if isinstance(cmap, Colormap):
             cmap = np.round(cmap(np.arange(256)) * 255).astype(np.uint8)
 
@@ -168,6 +181,7 @@ class Brain(surfer.Brain):
             data_dims = ('source',)
 
         # add data
+        new_surfaces = []
         if ndvar.source.lh_n and self._hemi != 'rh':
             if self._hemi == 'lh':
                 colorbar_ = colorbar
@@ -183,6 +197,7 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.lh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label_, colorbar_, 'lh')
+            new_surfaces.extend(self.data_dict['lh']['surfaces'])
 
         if ndvar.source.rh_n and self._hemi != 'lh':
             src_hemi = ndvar.sub(source='rh')
@@ -190,13 +205,22 @@ class Brain(surfer.Brain):
             vertices = ndvar.source.rh_vertno
             self.add_data(data, vmin, vmax, None, cmap, alpha, vertices,
                           smoothing_steps, times, time_label, colorbar, 'rh')
+            new_surfaces.extend(self.data_dict['rh']['surfaces'])
 
-        if not lighting:
-            for data in self.data_dict.viewvalues():
-                if data is None:
-                    continue
-                for surface in data['surfaces']:
-                    surface.actor.property.lighting = False
+        # update surfaces
+        for surface in new_surfaces:
+            if contours is not None:
+                surface.enable_contours = True
+                # http://code.enthought.com/projects/files/ets_api/enthought.mayavi.components.contour.Contour.html
+                surface.contour.auto_update_range = False
+                # surface.contour.maximum_contour = ndvar.max()
+                # surface.contour.minimum_contour = ndvar.min()
+                if contours is not True:
+                    surface.contour.contours = contours
+                    surface.contour.auto_contours = False
+
+            if not lighting:
+                surface.actor.property.lighting = False
 
         self.__data = ndvar
 
