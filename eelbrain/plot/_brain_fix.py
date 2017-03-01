@@ -39,6 +39,8 @@ def assert_can_save_movies():
 
 class Brain(surfer.Brain):
     # Subclass that adds Eelbrain functionality to the PySurfer surfer.Brain class
+    IPYTHON_GUI_IS_ENABLED = False
+
     def __init__(self, *args, **kwargs):
         self.__data = None
         self.__annot = None
@@ -48,11 +50,13 @@ class Brain(surfer.Brain):
         from traits.trait_base import ETSConfig
         self._prevent_close = ETSConfig.toolkit == 'wx'
         # start backend
-        if not self._prevent_close and 'IPython' in sys.modules:
+        if (not self._prevent_close and not Brain.IPYTHON_GUI_IS_ENABLED and
+                'IPython' in sys.modules):
             import IPython
             i = IPython.get_ipython()
             if i is not None:
                 i.run_line_magic('matplotlib', '')
+                Brain.IPYTHON_GUI_IS_ENABLED = True
 
     def add_mask(self, source, alpha=0.5, color=(0, 0, 0), smoothing_steps=None,
                  subjects_dir=None):
