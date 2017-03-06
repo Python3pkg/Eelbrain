@@ -389,7 +389,9 @@ Plotting Brains
 .. py:currentmodule:: eelbrain
 
 :mod:`plot.brain` contains specialized functions to plot :class:`NDVar` objects
-containing source space data with mayavi/pysurfer:
+containing source space data with mayavi/pysurfer. Unlike Eelbrain's other
+plotting functions, brain plots return a `PySurfer
+<https://pysurfer.github.io/#>`_ :class:`surfer.Brain` instance.
 
 .. autosummary::
    :toctree: generated
@@ -399,27 +401,9 @@ containing source space data with mayavi/pysurfer:
     plot.brain.p_map
     plot.brain.surfer_brain
 
-Other plotting functions:
-
-.. autosummary::
-   :toctree: generated
-
-    plot.brain.annot
-    plot.brain.annot_legend
-
-Functions that can be applied to the :class:`surfer.Brain` instances that are
-returned by the plotting functions:
-
-.. autosummary::
-   :toctree: generated
-
-    plot.brain.bin_table
-    plot.brain.copy
-
-Plotting functions return a subclass of
-`PySurfer <https://pysurfer.github.io/#>`_'s :class:`surfer.Brain` class. This
-subclass contains all PySurfer functionalities, and in addition has the
-following methods to better interact with Eelbrain:
+Eelbrain uses a subclass of PySurfer's :class:`surfer.Brain` class. In addition
+to the PySurfer functionality, this subclass provides the following
+Eelbrain-specific methods:
 
 .. autosummary::
    :toctree: generated
@@ -427,6 +411,13 @@ following methods to better interact with Eelbrain:
     ~plot._brain_mixin.BrainMixin.image
     ~plot._brain_mixin.BrainMixin.plot_colorbar
 
+Shortcut to plotting annotations with the same interface:
+
+.. autosummary::
+   :toctree: generated
+
+    plot.brain.annot
+    plot.brain.annot_legend
 
 Surface options for plotting data on ``fsaverage``:
 
