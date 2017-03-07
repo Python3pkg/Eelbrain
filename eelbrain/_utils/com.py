@@ -151,17 +151,22 @@ class Notifier(object):
             event = '{host} finished {task}'.format(host=host, task=self.name)
             self.send(event)
 
-    def send(self, subject, info=[]):
+    def send(self, subject, info=()):
         """Send an email message
 
         Parameters
         ----------
         subject : str
             Email subject line.
-        info : list of str
-            Email body; successive entries are joined with two line breaks.
+        info : str | list of str
+            Email body; if a list, successive entries are joined with three
+            line breaks.
         """
-        body = '\n\n\n'.join(map(unicode, info))
+        if isinstance(info, basestring):
+            body = info
+        else:
+            body = '\n\n\n'.join(map(unicode, info))
+
         try:
             send_email(self.to, subject, body, self._password)
         except Exception as error:
