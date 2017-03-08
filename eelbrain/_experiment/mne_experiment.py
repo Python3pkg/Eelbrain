@@ -47,7 +47,7 @@ from .._resources import predefined_connectivity
 from .._stats import spm
 from .._stats.stats import ttest_t
 from .._stats.testnd import _MergedTemporalClusterDist
-from .._utils import subp, keydefaultdict, log_level
+from .._utils import WrappedFormater, subp, keydefaultdict, log_level
 from .._utils.mne_utils import fix_annot_names, is_fake_mri
 from .definitions import (
     assert_dict_has_args, find_dependent_epochs, find_epochs_vars,
@@ -1102,7 +1102,8 @@ class MneExperiment(FileTree):
             log.addHandler(handler)
         # Terminal log
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(levelname)-8s %(name)s:  %(message)s")
+        formatter = WrappedFormater("%(levelname)-8s %(name)s:  %(message)s",
+                                    width=100, indent=9)
         handler.setFormatter(formatter)
         self._screen_log_level = log_level(self.screen_log_level)
         handler.setLevel(self._screen_log_level)

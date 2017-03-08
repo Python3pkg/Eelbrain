@@ -4,12 +4,29 @@ from collections import defaultdict
 import functools
 import logging
 import re
+from textwrap import TextWrapper
 from warnings import warn
 
 
 LOG_LEVELS = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO,
               'WARNING': logging.WARNING, 'ERROR': logging.ERROR,
               'CRITICAL': logging.CRITICAL}
+
+
+class WrappedFormater(logging.Formatter):
+    """Logging formatter for screen display
+
+    Break long lines, add indent for
+
+    """
+    # http://stackoverflow.com/a/25335783/166700
+    def __init__(self, fmt=None, datefmt=None, width=80, indent=4):
+        logging.Formatter.__init__(self, fmt, datefmt)
+        self.wrapper = TextWrapper(width, subsequent_indent=' '*indent)
+
+    def format(self, record):
+        return self.wrapper.fill(
+            logging.Formatter.format(self, record))
 
 
 def deprecated(version, replacement):
