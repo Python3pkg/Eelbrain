@@ -453,13 +453,18 @@ class ColorBar(EelFigure):
     ticks : {float: str} dict | sequence of float
         Customize tick-labels on the colormap; either a dictionary with
         tick-locations and labels, or a sequence of tick locations.
+    threshold : scalar
+        Set the alpha of values below ``threshold`` to 0 (as well as for
+        negative values above ``abs(threshold)``).
     """
     def __init__(self, cmap, vmin, vmax, label=True, label_position=None,
                  label_rotation=None,
                  clipmin=None, clipmax=None, orientation='horizontal',
-                 unit=None, contours=(), width=None, ticks=None, h=None, w=None,
-                 *args, **kwargs):
+                 unit=None, contours=(), width=None, ticks=None, threshold=None,
+                 h=None, w=None, *args, **kwargs):
         if isinstance(cmap, np.ndarray):
+            if threshold is not None:
+                raise NotImplementedError("threshold parameter with cmap=array")
             if cmap.max() > 1:
                 cmap = cmap / 255.
             cm = mpl.colors.ListedColormap(cmap, 'LUT')
@@ -467,6 +472,15 @@ class ColorBar(EelFigure):
         else:
             cm = mpl.cm.get_cmap(cmap)
             lut = cm(np.arange(cm.N))
+            if threshold:
+                assert threshold > 0
+                vrange = vmax - vmin
+                upper_threshold = int(round((threshold - vmin) / vrange * cm.N))
+                if -threshold > vmin:
+                    lower_threshold = int(round((-threshold - vmin) / vrange * cm.N))
+                else:
+                    lower_threshold = 0
+                lut[lower_threshold:upper_threshold, 3] = 0
 
         # prepare im and sizing
         if orientation == 'horizontal':
