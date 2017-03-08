@@ -138,11 +138,12 @@ class Brain(surfer.Brain):
             contour levels or ``True`` for automatic contours.
         """
         # find standard args
-        epochs = ((ndvar,),)
-        cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
-        vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
         meas = ndvar.info.get('meas')
-        vmin, vmax = vlims[meas]
+        if cmap is None or isinstance(cmap, basestring):
+            epochs = ((ndvar,),)
+            cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
+            vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
+            vmin, vmax = vlims[meas]
         # colormap
         if contours is not None:
             if cmap is None:
@@ -151,11 +152,13 @@ class Brain(surfer.Brain):
                 if len(cmap) == 1:
                     cmap = (cmap, cmap)
                 else:
-                    cmap = get_cmap(cmaps[meas])
+                    cmap = cmaps[meas]
         elif cmap is None or isinstance(cmap, basestring):
-            cmap = get_cmap(cmaps[meas])
+            cmap = cmaps[meas]
 
         # convert ColorMap to LUT (PySurfer can't handle ColorMap instances)
+        if isinstance(cmap, basestring):
+            cmap = get_cmap(cmap)
         if isinstance(cmap, Colormap):
             cmap = np.round(cmap(np.arange(cmap.N)) * 255).astype(np.uint8)
 
