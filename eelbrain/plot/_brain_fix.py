@@ -157,7 +157,7 @@ class Brain(surfer.Brain):
 
         # convert ColorMap to LUT (PySurfer can't handle ColorMap instances)
         if isinstance(cmap, Colormap):
-            cmap = np.round(cmap(np.arange(256)) * 255).astype(np.uint8)
+            cmap = np.round(cmap(np.arange(cmap.N)) * 255).astype(np.uint8)
 
         # general PySurfer data args
         alpha = 1
