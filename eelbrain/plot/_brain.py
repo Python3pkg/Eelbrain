@@ -222,6 +222,9 @@ def dspm(src, fmin=13, fmax=22, fmid=None, *args, **kwargs):
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
+    mask : bool | matplotlib color
+        Shade areas that are not in ``src``. Can be matplotlib color, including
+        alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -282,6 +285,9 @@ def p_map(p_map, param_map=None, p0=0.05, p1=0.01, p0alpha=0.5, *args,
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
+    mask : bool | matplotlib color
+        Shade areas that are not in ``p_map``. Can be matplotlib color,
+        including alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -341,6 +347,9 @@ def cluster(cluster, vmax=None, *args, **kwargs):
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
+    mask : bool | matplotlib color
+        Shade areas that are not in ``cluster``. Can be matplotlib color,
+        including alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -487,8 +496,9 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
-    mask : bool
-        Shade areas that are not in ``src``.
+    mask : bool | matplotlib color
+        Shade areas that are not in ``src``. Can be matplotlib color, including
+        alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -541,9 +551,14 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,
                         time_label)
 
-    if mask:
-        alpha = 0.5 if mask is True else mask
-        brain.add_mask(source, alpha, (0, 0, 0), smoothing_steps, subjects_dir)
+    if mask is not False:
+        if mask is True:
+            color = (0, 0, 0)
+            alpha = 0.5
+        else:
+            color = mask
+            alpha = None
+        brain.add_mask(source, color, smoothing_steps, alpha, subjects_dir)
 
     if parallel:
         brain.set_parallel_view(scale=True)
@@ -945,6 +960,9 @@ def dspm_bin_table(ndvar, fmin=2, fmax=8, fmid=None,
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
+    mask : bool | matplotlib color
+        Shade areas that are not in ``ndvar``. Can be matplotlib color,
+        including alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 
@@ -1026,6 +1044,9 @@ def bin_table(ndvar, tstart=None, tstop=None, tstep=0.1, surf='smoothwm',
     smoothing_steps : None | int
         Number of smoothing steps if data is spatially undersampled (pysurfer
         ``Brain.add_data()`` argument).
+    mask : bool | matplotlib color
+        Shade areas that are not in ``ndvar``. Can be matplotlib color,
+        including alpha (e.g., ``(1, 1, 1, 0.5)`` for semi-transparent white).
     subjects_dir : None | str
         Override the subjects_dir associated with the source space dimension.
 

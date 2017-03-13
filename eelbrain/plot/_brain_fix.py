@@ -58,20 +58,21 @@ class Brain(surfer.Brain):
                 i.run_line_magic('matplotlib', '')
                 Brain.IPYTHON_GUI_IS_ENABLED = True
 
-    def add_mask(self, source, alpha=0.5, color=(0, 0, 0), smoothing_steps=None,
-                 subjects_dir=None):
+    def add_mask(self, source, color=(1, 1, 1), smoothing_steps=None,
+                 alpha=None, subjects_dir=None):
         """Add a mask shading areas that are not included in an NDVar
 
         Parameters
         ----------
         source : SourceSpace
             SourceSpace.
-        alpha : scalar
-            Opacity of the mask layer.
-        color : Sequence of 3 scalar in range [0, 1]
-            Mask color (defauls is black ``(0, 0, 0)``).
+        color : matplotlib color
+            Mask color, can include alpha (defauls is black with alpha=0.5:
+            ``(0, 0, 0, 0.5)``).
         smoothing_steps : scalar (optional)
             Smooth transition at the mask's border.
+        alpha : scalar
+            Alpha for the mask (supercedes alpha in ``color``).
         subjects_dir : str
             Use this directory as the subjects directory.
         """
@@ -80,20 +81,19 @@ class Brain(surfer.Brain):
         if not isinstance(source, SourceSpace):
             raise TypeError("source needs to be a SourceSpace or NDVar, got "
                             "%s" % (source,))
-        if not 0. <= alpha <= 1.:
-            raise ValueError("alpha needs to be between 0 and 1, got %s" % alpha)
 
+        color = colorConverter.to_rgba(color, alpha)
         if smoothing_steps is not None:
             # generate LUT
-            color = colorConverter.to_rgb(color)
             lut = np.repeat(np.reshape(color, (1, 4)), 256, 0)
-            lut[:, 3] = np.linspace(alpha, 0, 256)
+            lut[:, 3] = np.linspace(color[-1], 0, 256)
             np.clip(lut, 0, 1, lut)
             lut *= 255
             lut = np.round(lut).astype(np.uint8)
             # generate mask Label
             mask_ndvar = source._mask_ndvar(subjects_dir)
-            self.add_ndvar(mask_ndvar, lut, 0., 1., smoothing_steps, False, None)
+            self.add_ndvar(mask_ndvar, lut, 0., 1., smoothing_steps, False,
+                           None, False)
         else:
             lh, rh = source._mask_label(subjects_dir)
             if self._hemi == 'lh':
@@ -102,9 +102,9 @@ class Brain(surfer.Brain):
                 lh = None
 
             if source.lh_n and lh:
-                self.add_label(lh, color, alpha)
+                self.add_label(lh, color[:3], color[3])
             if source.rh_n and rh:
-                self.add_label(rh, color, alpha)
+                self.add_label(rh, color[:3], color[3])
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms',
