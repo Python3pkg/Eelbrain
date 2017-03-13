@@ -3536,6 +3536,17 @@ class NDVar(object):
         else:
             return NDVar(x, dims, self.info.copy(), name)
 
+    def astype(self, dtype):
+        """Copy of the NDVar with data cast to the specified type
+
+        Parameters
+        ----------
+        dtype : numpy dtype
+            Numpy data-type specification (see :meth:`numpy.ndarray.astype`).
+        """
+        return NDVar(self.x.astype(dtype), self.dims, self.info.copy(),
+                     self.name)
+
     def bin(self, step=None, start=None, stop=None, func=None, dim=None,
             name=None, nbins=None):
         """Bin the data along the time axis
