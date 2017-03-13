@@ -103,8 +103,10 @@ class Brain(surfer.Brain):
 
             if source.lh_n and lh:
                 self.add_label(lh, color[:3], color[3])
+                self.labels_dict['mask-lh'][0].actor.property.lighting = False
             if source.rh_n and rh:
                 self.add_label(rh, color[:3], color[3])
+                self.labels_dict['mask-rh'][0].actor.property.lighting = False
 
     def add_ndvar(self, ndvar, cmap=None, vmin=None, vmax=None,
                   smoothing_steps=None, colorbar=False, time_label='ms',
