@@ -152,7 +152,7 @@ New in 0.18
 * API: Several plotting functions have a new ``xticklabels`` parameter to
   suppress x-axis tick labels (e.g. :class:`plot.UTSStat`).
 * The objects returned by :mod:`plot.brain` plotting functions now contain
-  a :meth:`~plot._brain_mixin.BrainMixin.plot_colorbar` method to create a
+  a :meth:`~plot._brain_fix.Brain.plot_colorbar` method to create a
   corresponding :class:`plot.ColorBar` plot.
 * New function :func:`choose` to combine data in different :class:`NDVars`
   on a case by case basis.

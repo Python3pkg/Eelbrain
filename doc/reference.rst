@@ -408,8 +408,8 @@ Eelbrain-specific methods:
 .. autosummary::
    :toctree: generated
 
-    ~plot._brain_mixin.BrainMixin.image
-    ~plot._brain_mixin.BrainMixin.plot_colorbar
+    ~plot._brain_fix.Brain.image
+    ~plot._brain_fix.Brain.plot_colorbar
 
 Shortcut to plotting annotations with the same interface:
 
