@@ -42,7 +42,7 @@ class Brain(surfer.Brain):
     IPYTHON_GUI_IS_ENABLED = False
 
     def __init__(self, *args, **kwargs):
-        self.__data = None
+        self.__data = []
         self.__annot = None
 
         surfer.Brain.__init__(self, *args, **kwargs)
@@ -185,9 +185,22 @@ class Brain(surfer.Brain):
             times = None
             data_dims = ('source',)
 
+        # determine which hemi we're adding data to
+        if self._hemi in ('lh', 'rh'):
+            data_hemi = self._hemi
+        elif not ndvar.source.lh_n:
+            data_hemi = 'rh'
+        elif not ndvar.source.rh_n:
+            data_hemi = 'lh'
+        else:
+            data_hemi = 'both'
+        # remember where to find data_dict
+        dict_hemi = 'rh' if data_hemi == 'rh' else 'lh'
+        data_index = len(self._data_dicts[dict_hemi])
+
         # add data
         new_surfaces = []
-        if ndvar.source.lh_n and self._hemi != 'rh':
+        if data_hemi != 'rh':
             if self._hemi == 'lh':
                 colorbar_ = colorbar
                 colorbar = False
@@ -204,7 +217,7 @@ class Brain(surfer.Brain):
                           smoothing_steps, times, time_label_, colorbar_, 'lh')
             new_surfaces.extend(self.data_dict['lh']['surfaces'])
 
-        if ndvar.source.rh_n and self._hemi != 'lh':
+        if data_hemi != 'lh':
             src_hemi = ndvar.sub(source='rh')
             data = src_hemi.get_data(data_dims)
             vertices = ndvar.source.rh_vertno
@@ -227,23 +240,24 @@ class Brain(surfer.Brain):
             if not lighting:
                 surface.actor.property.lighting = False
 
-        self.__data = ndvar
+        self.__data.append({
+            'hemi': data_hemi,
+            'data': ndvar,
+            'dict_hemi': dict_hemi,
+            'dict_index': data_index,
+        })
 
     def close(self):
         "Prevent close() call that causes segmentation fault"
         if not self._prevent_close:
             surfer.Brain.close(self)
 
-    def _get_cmap_params(self, label=True):
+    def _get_cmap_params(self, layer=0, label=True):
         """Return parameters required to plot a colorbar"""
-        if self._hemi in ('both', 'split', 'lh'):
-            data = self.data_dict['lh']
-        elif self._hemi == 'rh':
-            data = self.data_dict[self._hemi]
-        else:
-            raise RuntimeError("Brain._hemi=%s" % repr(self._hemi))
-        cmap = ListedColormap(data['orig_ctable'] / 255., label)
-        return cmap, data['fmin'], data['fmax']
+        data = self.__data[layer]
+        data_dict = self._data_dicts[data['dict_hemi']][data['dict_index']]
+        colormap = ListedColormap(data_dict['orig_ctable'] / 255., label)
+        return colormap, data_dict['fmin'], data_dict['fmax']
 
     def image(self, name=None, format='png', alt=None):
         """Create an FMText Image from a screenshot
@@ -260,13 +274,18 @@ class Brain(surfer.Brain):
             (HTML `alt` tag).
         """
         if name is None:
-            name = getattr(self.__data, 'name', None) or 'brain'
+            for data in self.__data:
+                name = data['data'].name
+                if name:
+                    break
+            else:
+                name = 'brain'
         im = self.screenshot('rgba', True)
         return Image.from_array(im, name, format, alt)
 
     def plot_colorbar(self, label=True, label_position=None, label_rotation=None,
                       clipmin=None, clipmax=None, orientation='horizontal',
-                      width=None, ticks=None, *args, **kwargs):
+                      width=None, ticks=None, layer=None, *args, **kwargs):
         """Plot a colorbar corresponding to the displayed data
 
         Parameters
@@ -290,22 +309,46 @@ class Brain(surfer.Brain):
         ticks : {float: str} dict | sequence of float
             Customize tick-labels on the colormap; either a dictionary with
             tick-locations and labels, or a sequence of tick locations.
+        layer : int
+            If the brain contains multiple data layers, plot a colorbar for
+            only one (int in the order ndvars were added; default is to plot
+            colorbars for all layers).
 
         Returns
         -------
-        colorbar : :class:`~eelbrain.plot.ColorBar`
-            ColorBar plot object.
+        colorbar : :class:`~eelbrain.plot.ColorBar` | list
+            ColorBar plot object (list of colorbars if more than one data layer
+            are present).
         """
-        if self.__data is None:
+        if not self.__data:
             raise RuntimeError("Brain has no data to plot colorbar for")
-        unit = self.__data.info.get('unit', None)
-        if ticks is None:
-            ticks = self.__data.info.get('cmap ticks')
-        _, label = find_axis_params_data(self.__data, label)
-        cmap, vmin, vmax = self._get_cmap_params(label)
-        return ColorBar(cmap, vmin, vmax, label, label_position, label_rotation,
-                        clipmin, clipmax, orientation, unit, (), width, ticks,
-                        *args, **kwargs)
+
+        if layer is None:
+            layers = xrange(len(self.__data))
+        else:
+            layers = (layer,)
+
+        out = []
+        for layer in layers:
+            data = self.__data[layer]
+            ndvar = data['data']
+            unit = ndvar.info.get('unit', None)
+            if ticks is None:
+                ticks = ndvar.info.get('cmap ticks')
+            _, label = find_axis_params_data(ndvar, label)
+            colormap, vmin, vmax = self._get_cmap_params(layer, label)
+            out.append(ColorBar(
+                colormap, vmin, vmax, label, label_position, label_rotation,
+                clipmin, clipmax, orientation, unit, (), width, ticks, *args,
+                **kwargs))
+
+            # reset parames
+            label = True
+
+        if len(out) == 1:
+            return out[0]
+        else:
+            return out
 
     def _set_annot(self, annot, borders, alpha):
         "Store annot name to enable plot_legend()"
@@ -343,6 +386,11 @@ class Brain(surfer.Brain):
                           'rh.%s.annot' % self.__annot)
 
         return annot_legend(lh, rh, *args, **kwargs)
+
+    def remove_data(self):
+        """Remove data shown with ``Brain.add_ndvar``"""
+        surfer.Brain.remove_data(self)
+        del self.__data[:]
 
     def set_parallel_view(self, forward=None, up=None, scale=None):
         """Set view to parallel projection
