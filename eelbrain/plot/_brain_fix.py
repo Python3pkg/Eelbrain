@@ -150,11 +150,11 @@ class Brain(surfer.Brain):
         if contours is not None:
             if cmap is None:
                 cmap = ('w', 'w')
-            elif isinstance(cmap, basestring):
-                if len(cmap) == 1:
-                    cmap = (cmap, cmap)
-                else:
-                    cmap = cmaps[meas]
+            elif isinstance(cmap, basestring) and len(cmap) > 1:
+                cmap = cmaps[meas]
+            else:
+                contour_color = colorConverter.to_rgb(cmap)
+                cmap = (contour_color, contour_color)
         elif cmap is None or isinstance(cmap, basestring):
             cmap = cmaps[meas]
 
