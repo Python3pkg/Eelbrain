@@ -396,10 +396,10 @@ plotting functions, brain plots return a `PySurfer
 .. autosummary::
    :toctree: generated
 
+    plot.brain.brain
     plot.brain.cluster
     plot.brain.dspm
     plot.brain.p_map
-    plot.brain.surfer_brain
 
 Eelbrain uses a subclass of PySurfer's :class:`surfer.Brain` class. In addition
 to the PySurfer functionality, this subclass provides the following
