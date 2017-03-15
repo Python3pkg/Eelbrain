@@ -130,7 +130,7 @@ class CanvasFrame(EelbrainFrame):
                  eelfigure=None,
                  statusbar=True, toolbar=True, mpl_toolbar=False,
                  *args, **kwargs):
-        wx.Frame.__init__(self, parent, -1, title=title)
+        EelbrainFrame.__init__(self, parent, -1, title=title)
 
     # set up the canvas
         # prepare the plot panel
