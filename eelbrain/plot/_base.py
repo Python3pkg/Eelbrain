@@ -1705,6 +1705,7 @@ class ColorBarMixin(object):
     def __init__(self, param_func, data):
         self.__get_params = param_func
         self.__unit = data.info.get('unit', None)
+        _, self.__label = find_axis_params_data(data, True)
 
     def _fill_toolbar(self, tb):
         import wx
@@ -1746,7 +1747,7 @@ class ColorBarMixin(object):
         """
         from . import ColorBar
         if label is True:
-            label = self.__unit
+            label = self.__label
         cmap, vmin, vmax = self.__get_params()
         return ColorBar(cmap, vmin, vmax, label, label_position, label_rotation,
                         clipmin, clipmax, orientation, self.__unit, (), *args,
