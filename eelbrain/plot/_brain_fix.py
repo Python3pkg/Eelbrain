@@ -3,11 +3,13 @@
 from distutils.version import LooseVersion
 import os
 import sys
+from tempfile import mkdtemp
 
 from matplotlib.cm import get_cmap
 from matplotlib.colors import Colormap, ListedColormap, colorConverter
 from mayavi import mlab
 import numpy as np
+import wx
 
 from .._data_obj import NDVar, SourceSpace
 from ..fmtxt import Image
@@ -251,6 +253,22 @@ class Brain(surfer.Brain):
         "Prevent close() call that causes segmentation fault"
         if not self._prevent_close:
             surfer.Brain.close(self)
+
+    def copy_screenshot(self):
+        "Copy the currently shown image to the clipboard"
+        tempdir = mkdtemp()
+        tempfile = os.path.join(tempdir, "brain.png")
+        self.save_image(tempfile, 'rgba', True)
+
+        bitmap = wx.Bitmap(tempfile, wx.BITMAP_TYPE_PNG)
+        bitmap_obj = wx.BitmapDataObject(bitmap)
+
+        if not wx.TheClipboard.IsOpened():
+            open_success = wx.TheClipboard.Open()
+            if open_success:
+                wx.TheClipboard.SetData(bitmap_obj)
+                wx.TheClipboard.Close()
+                wx.TheClipboard.Flush()
 
     def _get_cmap_params(self, layer=0, label=True):
         """Return parameters required to plot a colorbar"""

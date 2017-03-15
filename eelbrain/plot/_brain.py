@@ -3,8 +3,6 @@ from __future__ import division
 
 from functools import partial
 from itertools import izip, product
-import os
-from tempfile import mkdtemp
 from warnings import warn
 
 from nibabel.freesurfer import read_annot
@@ -1294,18 +1292,4 @@ def connectivity(source):
 
 def copy(brain):
     "Copy the figure to the clip board"
-    import wx
-
-    tempdir = mkdtemp()
-    tempfile = os.path.join(tempdir, "brain.png")
-    brain.save_image(tempfile, 'rgba', True)
-
-    bitmap = wx.Bitmap(tempfile, wx.BITMAP_TYPE_PNG)
-    bitmap_obj = wx.BitmapDataObject(bitmap)
-
-    if not wx.TheClipboard.IsOpened():
-        open_success = wx.TheClipboard.Open()
-        if open_success:
-            wx.TheClipboard.SetData(bitmap_obj)
-            wx.TheClipboard.Close()
-            wx.TheClipboard.Flush()
+    return brain.copy_screenshot()
