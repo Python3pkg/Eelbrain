@@ -30,8 +30,9 @@ class MayaviView(HasTraits):
         if n_scenes < 1:
             raise ValueError("n_rows=%r, n_columns=%r" % (n_rows, n_columns))
 
-        for i in xrange(n_scenes):
-            self.add_trait(SCENE_NAME % i, Instance(MlabSceneModel, ()))
+        self.scenes = tuple(MlabSceneModel() for _ in xrange(n_scenes))
+        for i, scene in enumerate(self.scenes):
+            self.add_trait(SCENE_NAME % i, scene)
 
         if n_rows == n_columns == 1:
             self.view = View(Item(SCENE_NAME % 0, editor=SceneEditor(),
@@ -49,8 +50,7 @@ class MayaviView(HasTraits):
                 rows.append(HGroup(*columns))
             self.view = View(VGroup(*rows))
 
-        self.figures = [getattr(self, SCENE_NAME % i).mayavi_scene for i in
-                        xrange(n_scenes)]
+        self.figures = [scene.mayavi_scene for scene in self.scenes]
 
 
 class BrainFrame(EelbrainFrame):
@@ -60,10 +60,13 @@ class BrainFrame(EelbrainFrame):
         self.mayavi_view = MayaviView(width, height, n_rows, n_columns)
         # Use traits to create a panel, and use it as the content of this
         # wx frame.
-        self.panel = self.mayavi_view.edit_traits(
-            parent=self,
-            view=self.mayavi_view.view,
-            kind='subpanel').control
+        self.ui = self.mayavi_view.edit_traits(parent=self,
+                                               view=self.mayavi_view.view,
+                                               kind='subpanel')
+        self.panel = self.ui.control
+        # Hide the toolbar (the edit_traits command assigns scene_editor)
+        for scene in self.mayavi_view.scenes:
+            scene.scene_editor._tool_bar.Show(False)
 
         self.panel.SetSize((width, height))
         self.Fit()
