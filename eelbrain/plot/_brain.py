@@ -440,13 +440,8 @@ def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
     if background is None:
         background = BACKGROUND
 
-    if title is None:
-        title = "Brain: %s" % subject
-    elif not isinstance(title, basestring):
-        raise TypeError("title needs to be a string, got %r" % (title,))
-
-    return Brain(title, width, height, show, run, subject, hemi, surf,
-                 cortex=cortex, alpha=1., views=views, background=background,
+    return Brain(subject, hemi, views, surf, title, width, height, show, run,
+                 cortex=cortex, alpha=1., background=background,
                  foreground=foreground, subjects_dir=subjects_dir)
 
 

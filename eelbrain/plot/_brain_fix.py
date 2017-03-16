@@ -35,13 +35,22 @@ def assert_can_save_movies():
 
 class Brain(surfer.Brain):
     # Subclass that adds Eelbrain functionality to surfer.Brain
-    def __init__(self, title, w, h, show, run, *args, **kwargs):
+    def __init__(self, subject, hemi, views, surf, title, width, height,
+                 show, run, **kwargs):
         self.__data = []
         self.__annot = None
 
-        self._frame = frame = BrainFrame(None, title, w, h)
+        if title is None:
+            title = "Brain: %s" % subject
+        elif not isinstance(title, basestring):
+            raise TypeError("title needs to be a string, got %r" % (title,))
 
-        surfer.Brain.__init__(self, *args, figure=frame.figure, **kwargs)
+        assert isinstance(views, list)
+        n_rows = len(views)
+        n_columns = 2 if hemi == 'split' else 1
+        self._frame = frame = BrainFrame(None, title, width, height, n_rows, n_columns)
+
+        surfer.Brain.__init__(self, subject, hemi, surf, views=views, figure=frame.figure, **kwargs)
 
         if backend['show'] and show:
             self._frame.Show()
