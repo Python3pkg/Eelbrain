@@ -7,30 +7,24 @@ from tempfile import mkdtemp
 
 from matplotlib.cm import get_cmap
 from matplotlib.colors import Colormap, ListedColormap, colorConverter
-from mayavi import mlab
 import numpy as np
 import wx
 
 from .._data_obj import NDVar, SourceSpace
+from .._wxgui import run as run_gui
 from ..fmtxt import Image
-from ._base import (backend, find_axis_params_data, find_fig_cmaps,
+from ..mne_fixes import reset_logger
+from ._base import (backend, do_autorun, find_axis_params_data, find_fig_cmaps,
                     find_fig_vlims)
 from ._colors import ColorBar
+from ._wx_brain import BrainFrame
 
-# pyface imports: set GUI backend (ETS don't support wxPython 3.0)
-if backend['ets_toolkit']:
-    os.environ['ETS_TOOLKIT'] = backend['ets_toolkit']
-
-# Make sure app is initialized. If not, mayavi takes over the menu bar
-# and quits after closing the window
-from .._wxgui import get_app
-get_app()
-
+# Traits-GUI related imports after BrainFrame
+from mayavi import mlab
 # surfer imports, lower screen logging level
 first_import = 'surfer' not in sys.modules
 import surfer
 if first_import:
-    from ..mne_fixes import reset_logger
     reset_logger(surfer.utils.logger)
 
 
@@ -40,25 +34,19 @@ def assert_can_save_movies():
 
 
 class Brain(surfer.Brain):
-    # Subclass that adds Eelbrain functionality to the PySurfer surfer.Brain class
-    IPYTHON_GUI_IS_ENABLED = False
-
-    def __init__(self, *args, **kwargs):
+    # Subclass that adds Eelbrain functionality to surfer.Brain
+    def __init__(self, title, w, h, show, run, *args, **kwargs):
         self.__data = []
         self.__annot = None
 
-        surfer.Brain.__init__(self, *args, **kwargs)
+        self._frame = frame = BrainFrame(None, title, w, h)
 
-        from traits.trait_base import ETSConfig
-        self._prevent_close = ETSConfig.toolkit == 'wx'
-        # start backend
-        if (not self._prevent_close and not Brain.IPYTHON_GUI_IS_ENABLED and
-                'IPython' in sys.modules):
-            import IPython
-            i = IPython.get_ipython()
-            if i is not None:
-                i.run_line_magic('matplotlib', '')
-                Brain.IPYTHON_GUI_IS_ENABLED = True
+        surfer.Brain.__init__(self, *args, figure=frame.figure, **kwargs)
+
+        if backend['show'] and show:
+            self._frame.Show()
+            if backend['eelbrain'] and do_autorun(run):
+                run_gui()
 
     def add_mask(self, source, color=(1, 1, 1), smoothing_steps=None,
                  alpha=None, subjects_dir=None):
@@ -250,9 +238,9 @@ class Brain(surfer.Brain):
         })
 
     def close(self):
-        "Prevent close() call that causes segmentation fault"
-        if not self._prevent_close:
-            surfer.Brain.close(self)
+        "Close the figure window"
+        self._frame.Close()
+        surfer.Brain.close(self)
 
     def copy_screenshot(self):
         "Copy the currently shown image to the clipboard"

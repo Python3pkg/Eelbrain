@@ -372,7 +372,7 @@ def cluster(cluster, vmax=None, *args, **kwargs):
 def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
                   views=('lat', 'med'), w=None, h=None, axw=None, axh=None,
                   foreground=None, background=None, cortex='classic',
-                  title=None, subjects_dir=None):
+                  title=None, subjects_dir=None, show=True, run=True):
     """Create surfer.Brain instance
 
     Parameters
@@ -440,8 +440,13 @@ def _surfer_brain(subject='fsaverage', surf='smoothwm', hemi='split',
     if background is None:
         background = BACKGROUND
 
-    return Brain(subject, hemi, surf, title=title, cortex=cortex, alpha=1.,
-                 size=(width, height), views=views, background=background,
+    if title is None:
+        title = "Brain: %s" % subject
+    elif not isinstance(title, basestring):
+        raise TypeError("title needs to be a string, got %r" % (title,))
+
+    return Brain(title, width, height, show, run, subject, hemi, surf,
+                 cortex=cortex, alpha=1., views=views, background=background,
                  foreground=foreground, subjects_dir=subjects_dir)
 
 
