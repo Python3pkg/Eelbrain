@@ -3976,9 +3976,7 @@ class NDVar(object):
 
     def get_dim(self, name):
         "Return the Dimension object named ``name``"
-        i = self.get_axis(name)
-        dim = self.dims[i]
-        return dim
+        return self.dims[self.get_axis(name)]
 
     def get_dimnames(self, names):
         """Fill in a partially specified tuple of Dimension names
@@ -4375,6 +4373,39 @@ class NDVar(object):
         """
         return NDVar(np.sign(self.x), self.dims, self.info.copy(),
                      name or self.name)
+
+    def smooth(self, dim, window_length, window='blackman', name=None):
+        """Smooth data by convolving it with a window
+
+        Parameters
+        ----------
+        dim : str
+            Dimension along which to smooth.
+        window_length : scalar
+            Length of the window (in dimension units, i.e., for time in
+            seconds).
+        window : str | tuple
+            Window type, input to :func:`scipy.signal.get_window`. For example
+            'boxcar', 'triang', 'blackman' (default).
+        name : str
+            Name for the smoothed NDVar.
+
+        Returns
+        -------
+        smoothed_ndvar : NDVar
+            NDVar with idential dimensions containing the smoothed data.
+        """
+        axis = self.get_axis(dim)
+        dim_object = self.get_dim(dim)
+        if dim == 'time':
+            n = int(round(window_length / dim_object.tstep))
+        else:
+            raise NotImplementedError("dim=%r" % (dim,))
+        window = scipy.signal.get_window(window, n)
+        window /= window.sum()
+        window.shape = (1,) * axis + (n,) + (1,) * (self.ndim - axis - 1)
+        x = scipy.signal.convolve(self.x, window, 'same')
+        return NDVar(x, self.dims, self.info.copy(), name or self.name)
 
     def std(self, dims=(), **regions):
         """Compute the standard deviation over given dimensions

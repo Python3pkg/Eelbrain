@@ -19,6 +19,7 @@ import numpy as np
 from numpy.testing import (
     assert_equal, assert_array_equal, assert_allclose,
     assert_array_almost_equal)
+from scipy import signal
 
 from eelbrain import (
     datasets, load, Var, Factor, NDVar, Datalist, Dataset, Celltable, align,
@@ -1131,6 +1132,18 @@ def test_ndvar_timeseries_methods():
 
     # indexing
     eq_(len(ds[0, 'uts'][0.01:0.1].time), 9)
+
+    # smoothing
+    ma = x.smooth('time', 0.2)
+    mas = xs.smooth('time', 0.2)
+    assert_array_equal(ma.x, mas.x.swapaxes(1, 2))
+    ma_mean = x.mean('case').smooth('time', 0.2)
+    assert_allclose(ma.mean('case').x, ma_mean.x)
+    # against raw scipy.signal
+    window = signal.get_window('blackman', 20)
+    window /= window.sum()
+    window.shape = (1, 1, 20)
+    assert_equal(ma.x, signal.convolve(x.x, window, 'same'))
 
     # FFT
     x = ds['uts'].mean('case')
