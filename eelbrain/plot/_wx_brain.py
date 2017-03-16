@@ -11,6 +11,7 @@ ETSConfig.toolkit = 'wx'
 from mayavi.core.ui.api import SceneEditor, MlabSceneModel
 from traits.api import HasTraits, Instance
 from traitsui.api import View, Item, HGroup, VGroup
+from tvtk.api import tvtk
 import wx
 
 from .._wxgui.frame import EelbrainFrame
@@ -67,6 +68,7 @@ class BrainFrame(EelbrainFrame):
         # Hide the toolbar (the edit_traits command assigns scene_editor)
         for scene in self.mayavi_view.scenes:
             scene.scene_editor._tool_bar.Show(False)
+            scene.interactor.interactor_style = tvtk.InteractorStyleTerrain()
 
         self.panel.SetSize((width, height))
         self.Fit()
