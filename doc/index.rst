@@ -6,6 +6,9 @@
 Eelbrain
 ========
 
+.. image:: https://zenodo.org/badge/3651023.svg
+   :target: https://zenodo.org/badge/latestdoi/3651023
+
 Eelbrain is an open-source `Python <https://www.python.org>`_ package for
 accessible statistical analysis of MEG and EEG data.
 It is maintained by
@@ -16,9 +19,6 @@ at University of Maryland, College Park.
 
 If you use Eelbrain in work that is published, please acknowledge it by citing
 it with the appropriate DOI for the version you used.
-
-.. image:: https://zenodo.org/badge/3651023.svg
-   :target: https://zenodo.org/badge/latestdoi/3651023
 
 
 Manual
