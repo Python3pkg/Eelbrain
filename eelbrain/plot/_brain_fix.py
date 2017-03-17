@@ -1,9 +1,12 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Fix up surfer.Brain"""
+from __future__ import division
+
 from distutils.version import LooseVersion
 import os
 import sys
 from tempfile import mkdtemp
+from time import time, sleep
 
 from matplotlib.cm import get_cmap
 from matplotlib.colors import Colormap, ListedColormap, colorConverter
@@ -369,6 +372,18 @@ class Brain(surfer.Brain):
         "Store annot name to enable plot_legend()"
         self.add_annotation(annot, borders, alpha)
         self.__annot = annot
+
+    def play_movie(self, tstart=None, tstop=None, fps=10):
+        """Play an animation by setting time"""
+        max_wait = 1 / fps
+        start = 0 if tstart is None else self.index_for_time(tstart)
+        stop = self.n_times if tstop is None else self.index_for_time(tstop)
+        for i in xrange(start, stop):
+            t0 = time()
+            self.set_data_time_index(i)
+            dt = time() - t0
+            if dt < max_wait:
+                sleep(max_wait - dt)
 
     def plot_legend(self, *args, **kwargs):
         """Plot legend for parcellation
