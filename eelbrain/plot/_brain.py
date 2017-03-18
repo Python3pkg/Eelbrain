@@ -29,7 +29,7 @@ def assert_can_save_movies():
 def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
           hemi=None, views=('lat', 'med'), w=None, h=None, axw=None, axh=None,
           foreground=None, background=None, parallel=True, cortex='classic',
-          title=None, subjects_dir=None):
+          title=None, subjects_dir=None, show=True, run=None):
     """Plot the parcellation in an annotation file
 
     Parameters
@@ -99,7 +99,8 @@ def annot(annot, subject='fsaverage', surf='smoothwm', borders=False, alpha=0.7,
         title = annot
 
     brain = _surfer_brain(subject, surf, hemi, views, w, h, axw, axh,
-                          foreground, background, cortex, title, subjects_dir)
+                          foreground, background, cortex, title, subjects_dir,
+                          show, run)
     brain._set_annot(annot, borders, alpha)
     if parallel:
         brain.set_parallel_view(scale=True)
@@ -449,7 +450,7 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
           views=('lat', 'med'), hemi=None, colorbar=False, time_label='ms',
           w=None, h=None, axw=None, axh=None, foreground=None, background=None,
           parallel=True, cortex='classic', title=None, smoothing_steps=None,
-          mask=True, subjects_dir=None, colormap=None):
+          mask=True, subjects_dir=None, show=True, run=None, colormap=None):
     """Create a PySurfer Brain object with a data layer
 
     Parameters
@@ -543,7 +544,8 @@ def brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         subjects_dir = source.subjects_dir
 
     brain = _surfer_brain(source.subject, surf, hemi, views, w, h, axw, axh,
-                          foreground, background, cortex, title, subjects_dir)
+                          foreground, background, cortex, title, subjects_dir,
+                          show, run)
 
     if ndvar is not None:
         brain.add_ndvar(ndvar, cmap, vmin, vmax, smoothing_steps, colorbar,

@@ -61,6 +61,13 @@ class BrainFrame(EelbrainFrame):
         self.mayavi_view = MayaviView(width, height, n_rows, n_columns)
         # Use traits to create a panel, and use it as the content of this
         # wx frame.
+        # FIXME: This step already generates a visible window
+        # edit_traits(kind) -> View.ui(kind) -> UI.ui(kind)
+        # -> traitsui.wx.ui_panel.ui_subpanel() -> .panel() -> .FillPanel
+        # -> .FillPanel.add_items()
+        # -> traitsui.editor.Editor.prepare()
+        # -> Show() call in vtk.wx.wxVTKRenderWindowInteractor.__init__()
+        #    disabling it leads to screenshot() returning black image
         self.ui = self.mayavi_view.edit_traits(parent=self,
                                                view=self.mayavi_view.view,
                                                kind='subpanel')
