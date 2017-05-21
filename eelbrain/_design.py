@@ -39,8 +39,8 @@ Can be used in matlab as:
              255           0           0
 
 '''
-from __future__ import division
-from __future__ import print_function
+
+
 
 from itertools import product
 from math import ceil
@@ -149,7 +149,7 @@ def permute_(variables, count='caseID', randomize=False):
             base = np.arange(v.N)
             for v0 in variables[:i]:
                 if v0 in v.urn:
-                    base = np.ravel([base[base != j] for j in xrange(v.N)])
+                    base = np.ravel([base[base != j] for j in range(v.N)])
                 else:
                     base = np.tile(base, v.Ndraw)
 
@@ -159,7 +159,7 @@ def permute_(variables, count='caseID', randomize=False):
         # shuffle those perm factors that should be shuffled
         n_rand_bins = np.prod([v.Ndraw for v in perm_nonrand])
         rand_bin_len = int(n_trials / n_rand_bins)
-        for i in xrange(0, n_trials, rand_bin_len):
+        for i in range(0, n_trials, rand_bin_len):
             np.random.shuffle(out[i:i + rand_bin_len])
 
     # create Dataset
@@ -296,12 +296,12 @@ def _try_make_random_factor(name, values, n, rand, balance, urn,
                 raise NotImplementedError
 
             # source and target indexes
-            for si, ti in zip(range(region_len), c_indexes):
+            for si, ti in zip(list(range(region_len)), c_indexes):
                 if any(cells[values[si]] == u[ti] for u in urn):
 
                     # randomized order in which to test other
                     # values for switching
-                    switch_order = range(region_len)
+                    switch_order = list(range(region_len))
                     switch_order.pop(si)
                     np.random.shuffle(switch_order)
 
@@ -351,7 +351,7 @@ def complement(base, name=None, values=None, ds=None):
     cells = dict(enumerate(values))
 
     grid = np.empty((N, len(values)), dtype=bool)
-    for i, v in cells.iteritems():
+    for i, v in cells.items():
         grid[:, i] = np.all([f != v for f in base], axis=0)
 
     grid_sum = np.sum(grid, axis=1)
@@ -436,7 +436,7 @@ def export_mat(dataset, values=None, destination=None):
     else:
         print_path = False
 
-    if not isinstance(destination, basestring):
+    if not isinstance(destination, str):
         raise ValueError("destination is not a string")
 
     dirname = os.path.dirname(destination)

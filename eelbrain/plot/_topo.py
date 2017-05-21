@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Plot topographic maps of sensor space data."""
-from __future__ import division
+
 
 from collections import Sequence
-from itertools import izip, repeat
+from itertools import repeat
 from math import floor, sqrt
 from warnings import warn
 
@@ -96,7 +96,7 @@ class Topomap(SensorMapMixin, ColorMapMixin, TopoMapKey, EelFigure):
         )
         ColorMapMixin.__init__(self, epochs, cmap, vmax, vmin, contours)
         nax = len(epochs)
-        if isinstance(proj, basestring):
+        if isinstance(proj, str):
             proj = repeat(proj, nax)
         elif not isinstance(proj, Sequence):
             raise TypeError("proj=%s" % repr(proj))
@@ -112,7 +112,7 @@ class Topomap(SensorMapMixin, ColorMapMixin, TopoMapKey, EelFigure):
 
         # plots
         self.plots = []
-        for ax, layers, proj_ in izip(self._axes, epochs, proj):
+        for ax, layers, proj_ in zip(self._axes, epochs, proj):
             h = _ax_topomap(ax, layers, clip, clip_distance, sensorlabels, mark,
                             None, None, proj_, res, interpolation, xlabel,
                             self._vlims, self._cmaps, self._contours, method,
@@ -167,7 +167,7 @@ class TopomapBins(EelFigure):
 
 
 class TopoButterfly(TopoMapKey, YLimMixin, XAxisMixin, EelFigure):
-    u"""Butterfly plot with corresponding topomaps
+    """Butterfly plot with corresponding topomaps
 
     Parameters
     ----------
@@ -290,7 +290,7 @@ class TopoButterfly(TopoMapKey, YLimMixin, XAxisMixin, EelFigure):
         self._xvalues = []
 
         # plot epochs (x/y are in figure coordinates)
-        for ax, layers in izip(self.bfly_axes, epochs):
+        for ax, layers in zip(self.bfly_axes, epochs):
             p = _ax_butterfly(ax, layers, 'time', 'sensor', mark, color, vlims)
             self.bfly_plots.append(p)
             self._xvalues = np.union1d(self._xvalues, p._xvalues)
@@ -468,8 +468,8 @@ class _plt_topomap(_plt_im):
             default_head_radius = sqrt(np.min(np.sum((points - [0.5, 0.5]) ** 2, 1)))
             if clip == 'even':
                 # find offset due to clip_distance
-                tangents = points[range(1, len(points)) + [0]] \
-                           - points[range(-1, len(points) - 1)]
+                tangents = points[list(range(1, len(points))) + [0]] \
+                           - points[list(range(-1, len(points) - 1))]
                 verticals = np.dot(tangents, [[0, -1], [1, 0]])
                 verticals /= np.sqrt(np.sum(verticals ** 2, 1)[:, None])
                 verticals *= clip_distance
@@ -590,7 +590,7 @@ class _ax_topomap(_ax_im_array):
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
 
-        if isinstance(xlabel, basestring):
+        if isinstance(xlabel, str):
             x, y = ax.transData.inverted().transform(ax.transAxes.transform((0.5, 0)))
             ax.text(x, y, xlabel, ha='center', va='top')
 
@@ -885,7 +885,7 @@ class TopoArray(EelFigure):
         .set_topo_ts : set several topomap time points at once
         .set_topo_t_single : set the time point of a single topomap
         """
-        for i in xrange(len(self._array_plots)):
+        for i in range(len(self._array_plots)):
             _topo = self._ntopo * i + topo_id
             self.set_topo_t_single(_topo, t, parent_im_id=i)
 

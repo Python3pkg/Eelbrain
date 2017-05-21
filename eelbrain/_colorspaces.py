@@ -24,9 +24,9 @@ p
 r, t, f
     Statistic (correlation, t- and f- values).
 """
-from __future__ import division
 
-from itertools import izip
+
+
 
 from colormath.color_objects import LCHabColor, sRGBColor
 from colormath.color_conversions import convert_color
@@ -115,7 +115,7 @@ def twoway_cmap(n1, hue_start=0.1, hue_shift=0.5, name=None, hues=None):
                      lch_to_rgb(100, 100, h_post)))
 
     seq = []
-    for i in xrange(n1):
+    for i in range(n1):
         seq.append((seqs[i - 1][-1], seqs[i][0]))
         seq.append(seqs[i][1])
         if i == n1 - 1:
@@ -157,7 +157,7 @@ def oneway_colors(n, hue_start=0.2, light_range=0.5):
     else:
         l_edge = 50 * light_range
         lightness = np.linspace(50 + l_edge, 50 - l_edge, n)
-    return [lch_to_rgb(l, 100, h) for l, h in izip(lightness, hue)]
+    return [lch_to_rgb(l, 100, h) for l, h in zip(lightness, hue)]
 
 
 def twoway_colors(n1, n2, hue_start=0.2, hue_shift=0., hues=None):
@@ -192,7 +192,7 @@ def twoway_colors(n1, n2, hue_start=0.2, hue_shift=0., hues=None):
     colors = []
     for hue in hues:
         hs = np.linspace(hue - hue_shift, hue + hue_shift, n2) % 1
-        colors.extend(lch_to_rgb(l, 100, h) for l, h in izip(ls, hs))
+        colors.extend(lch_to_rgb(l, 100, h) for l, h in zip(ls, hs))
 
     return colors
 

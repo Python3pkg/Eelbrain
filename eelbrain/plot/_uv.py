@@ -1,9 +1,9 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Plot univariate data (:class:`~eelbrain.Var` objects)."""
 
-from __future__ import division
 
-from itertools import izip
+
+
 import logging
 
 import numpy as np
@@ -87,10 +87,10 @@ def _mark_plot_pairwise(ax, ct, parametric, bottom, y_unit, corr, trend, markers
 
     # plan grid layout
     k = len(ct.cells)
-    reservation = np.zeros((sum(xrange(1, k)), k - 1))
+    reservation = np.zeros((sum(range(1, k)), k - 1))
     connections = []
-    for distance in xrange(1, k):
-        for i in xrange(0, k - distance):
+    for distance in range(1, k):
+        for i in range(0, k - distance):
             # i, j are data indexes for the categories being compared
             j = i + distance
             index = tests['pw_indexes'][(i, j)]
@@ -206,7 +206,7 @@ class PairwiseLegend(EelFigure):
         x2 = .9 * size
         x = (x1, x1, x2, x2)
         x_text = 1.2 * size
-        for i, level, color in izip(xrange(n_levels), levels, colors):
+        for i, level, color in zip(range(n_levels), levels, colors):
             y1 = y_unit * (i * 5 + 2)
             y2 = y1 + y_unit
             ax.plot(x, (y1, y2, y2, y1), color=color)
@@ -249,7 +249,7 @@ class _SimpleFigure(EelFigure):
             labels = self._ax.get_xticklabels()
             if len(labels) > 1:
                 bbs = [l.get_window_extent() for l in labels]
-                overlap = max(bbs[i].x1 - bbs[i + 1].x0 for i in xrange(len(bbs)-1))
+                overlap = max(bbs[i].x1 - bbs[i + 1].x0 for i in range(len(bbs)-1))
                 extend = len(bbs) * (overlap + 10)
                 w, h = self._frame.GetSize()
                 w += int(extend)
@@ -376,11 +376,11 @@ class Boxplot(_SimpleFigure):
 
         # Now fill the boxes with desired colors
         if hatch or colors:
-            for i in xrange(ct.n_cells):
+            for i in range(ct.n_cells):
                 box = bp['boxes'][i]
                 box_x = box.get_xdata()[:5]  # []
                 box_y = box.get_ydata()[:5]  # []
-                box_coords = zip(box_x, box_y)
+                box_coords = list(zip(box_x, box_y))
                 if colors:
                     c = colors[i]
                 else:
@@ -542,7 +542,7 @@ class Barplot(_SimpleFigure):
             if xticks is True:
                 xticks = ct.cellnames(xtick_delim)
             self._ax.set_xticklabels(xticks)
-            self._ax.set_xticks(range(len(ct.cells)))
+            self._ax.set_xticks(list(range(len(ct.cells))))
         else:
             self._ax.set_xticks(())
 
@@ -791,7 +791,7 @@ class Timeplot(EelFigure, LegendMixin):
                     box = bp['boxes'][i]
                     boxX = box.get_xdata()[:5]
                     boxY = box.get_ydata()[:5]
-                    boxCoords = zip(boxX, boxY)
+                    boxCoords = list(zip(boxX, boxY))
 
                     c = colors[cell]
                     try:
@@ -859,7 +859,7 @@ class Timeplot(EelFigure, LegendMixin):
             if isinstance(timelabels, dict):
                 xticklabels = [timelabels[t] for t in time_points]
             else:
-                xticklabels = [unicode(l) for l in timelabels]
+                xticklabels = [str(l) for l in timelabels]
             ax.set_xticklabels(xticklabels)
 
         LegendMixin.__init__(self, legend, legend_handles)
@@ -1044,7 +1044,7 @@ class Regression(EelFigure, LegendMixin):
 def _difference(data, names):
     "Data condition x subject"
     data_differences = []; diffnames = []; diffnames_2lines = []
-    for i, (name1, data1) in enumerate(zip(names, data)):
+    for i, (name1, data1) in enumerate(list(zip(names, data))):
         for name2, data2 in zip(names[i + 1:], data[i + 1:]):
             data_differences.append(data1 - data2)
             diffnames.append('-'.join([name1, name2]))
@@ -1144,7 +1144,7 @@ class Histogram(EelFigure):
             pooled_data = []
             # i: row
             # j: -column
-            for i in xrange(n_comp + 1):
+            for i in range(n_comp + 1):
                 for j in range(i + 1, n_comp + 1):
                     difference = data[i] - data[j]
                     pooled_data.append(scipy.stats.zscore(difference))  # z transform?? (scipy.stats.zs())
@@ -1169,7 +1169,7 @@ class Histogram(EelFigure):
                                  verticalalignment='bottom',
                                  horizontalalignment='right')
         else:  # independent measures
-            for cell, ax in izip(ct.cells, self._axes):
+            for cell, ax in zip(ct.cells, self._axes):
                 ax.set_title(cellname(cell))
                 _ax_histogram(ax, ct.data[cell], normed)
 
@@ -1229,7 +1229,7 @@ def boxcox_explore(Y, params=[-1, -.5, 0, .5, 1], crange=False, ax=None, box=Tru
         ax = plt.subplot(111)
 
     ax.boxplot(y)
-    ax.set_xticks(range(1, 1 + len(params)))
+    ax.set_xticks(list(range(1, 1 + len(params))))
     ax.set_xticklabels(params)
     ax.set_xlabel("p")
     if crange:

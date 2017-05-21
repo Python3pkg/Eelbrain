@@ -109,7 +109,7 @@ def tsv(path=None, names=True, types='auto', delimiter='\t', skiprows=0,
                    % (len(names), n_cols))
             raise ValueError(msg)
     else:
-        names = ['v%i' % i for i in xrange(n_cols)]
+        names = ['v%i' % i for i in range(n_cols)]
 
     if types in ('auto', None, False, True):
         types = [0] * n_cols

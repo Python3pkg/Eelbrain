@@ -23,14 +23,14 @@ def test_permutation():
     logging.info('Permutation with Unit:\n%s' % res)
 
     # check we have only appropriate cells
-    cols = [np.unique(res[:, i]) for i in xrange(res.shape[1])]
-    for i in xrange(3):
+    cols = [np.unique(res[:, i]) for i in range(res.shape[1])]
+    for i in range(3):
         eq_(len(np.setdiff1d(cols[i], [i, i + 3])), 0)
-    for i in xrange(3, 6):
+    for i in range(3, 6):
         eq_(len(np.setdiff1d(cols[i], [i, i - 3])), 0)
 
     # check we have some variability
-    eq_(max(map(len, cols)), 2)
+    eq_(max(list(map(len, cols))), 2)
 
 
 def test_permutation_sign_flip():
@@ -44,4 +44,4 @@ def test_permutation_sign_flip():
     for i, row in enumerate(res):
         eq_(np.any(np.all(row == res[:i], 1)), False)
 
-    assert_raises(NotImplementedError, permute_sign_flip(63).next)
+    assert_raises(NotImplementedError, permute_sign_flip(63).__next__)

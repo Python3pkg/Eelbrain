@@ -14,7 +14,7 @@ def wav(filename=None):
                                "NDVar", [("WAV files", "*.wav")])
         if not filename:
             return
-    elif not isinstance(filename, basestring):
+    elif not isinstance(filename, str):
         raise TypeError("filename must be string, got %s" % repr(filename))
 
     srate, data = wavfile.read(filename)

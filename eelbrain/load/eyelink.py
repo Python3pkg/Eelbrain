@@ -1,7 +1,7 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Tools for loading data form eyelink edf files."""
 
-from __future__ import print_function
+
 from glob import glob
 import os
 import re
@@ -150,7 +150,7 @@ class Edf(object):
         if len(trigger) != len(edf_trigger):
             lens = (len(trigger), len(edf_trigger))
             mm = min(lens)
-            for i in xrange(mm):
+            for i in range(mm):
                 if trigger[i] != edf_trigger[i]:
                     mm = i
                     break

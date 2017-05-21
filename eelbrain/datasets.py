@@ -22,7 +22,7 @@ def _apply_kernel(x, h, out=None):
     else:
         out.fill(0)
 
-    for ind in xrange(len(h)):
+    for ind in range(len(h)):
         out += np.convolve(h[ind], x[ind])[:len(out)]
 
     return out
@@ -73,7 +73,7 @@ def _get_continuous(n_samples=100, seed=0):
 def get_loftus_masson_1994():
     "Dataset used for illustration purposes by Loftus and Masson (1994)"
     ds = Dataset()
-    ds['subject'] = Factor(range(1, 11), tile=3, random=True)
+    ds['subject'] = Factor(list(range(1, 11)), tile=3, random=True)
     ds['exposure'] = Var([1, 2, 5], repeat=10)
     ds['n_recalled'] = Var([10, 6, 11, 22, 16, 15, 1, 12, 9, 8,
                             13, 8, 14, 23, 18, 17, 1, 15, 12, 9,
@@ -308,8 +308,8 @@ def get_uts(utsnd=False, seed=0, nrm=False):
     # add a model
     ds['A'] = Factor(['a0', 'a1'], repeat=30)
     ds['B'] = Factor(['b0', 'b1'], repeat=15, tile=2)
-    ds['rm'] = Factor(('R%.2i' % i for i in xrange(15)), tile=4, random=True)
-    ds['ind'] = Factor(('R%.2i' % i for i in xrange(60)), random=True)
+    ds['rm'] = Factor(('R%.2i' % i for i in range(15)), tile=4, random=True)
+    ds['ind'] = Factor(('R%.2i' % i for i in range(60)), random=True)
 
     # add dependent variables
     rm_var = np.tile(np.random.normal(size=15), 4)
@@ -353,7 +353,7 @@ def get_uts(utsnd=False, seed=0, nrm=False):
         # add spectral effect
         freq = 15.0  # >= 2
         x = np.sin(time.times * freq * 2 * np.pi)
-        for i in xrange(30):
+        for i in range(30):
             shift = np.random.randint(0, 100 / freq)
             y[i, 2, 25:75] += 1.1 * win * x[shift: 50 + shift]
             y[i, 3, 25:75] += 1.5 * win * x[shift: 50 + shift]
@@ -364,8 +364,8 @@ def get_uts(utsnd=False, seed=0, nrm=False):
 
     # nested random effect
     if nrm:
-        ds['nrm'] = Factor([a + '%02i' % i for a in 'AB' for _ in xrange(2) for
-                            i in xrange(15)], random=True)
+        ds['nrm'] = Factor([a + '%02i' % i for a in 'AB' for _ in range(2) for
+                            i in range(15)], random=True)
 
     return ds
 
@@ -385,7 +385,7 @@ def get_uv(seed=0, nrm=False):
 
     ds = permute([('A', ('a1', 'a2')),
                   ('B', ('b1', 'b2')),
-                  ('rm', ['s%03i' % i for i in xrange(20)])])
+                  ('rm', ['s%03i' % i for i in range(20)])])
     ds['rm'].random = True
     ds['intvar'] = Var(np.random.randint(5, 15, 80))
     ds['intvar'][:20] += 3
@@ -450,9 +450,9 @@ def setup_samples_experiment(dst, n_subjects=3, n_segments=4, n_sessions=1):
     if n_sessions == 1:
         sessions = ['sample']
     else:
-        sessions = ['sample%i' % (i + 1) for i in xrange(n_sessions)]
+        sessions = ['sample%i' % (i + 1) for i in range(n_sessions)]
 
-    for s_id in xrange(n_subjects):
+    for s_id in range(n_subjects):
         subject = 'R%04i' % s_id
         os.mkdir(meg_dir.format(subject=subject))
         for session in sessions:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Plot uniform time-series of one variable."""
-from __future__ import division
 
-from itertools import izip
+
+
 import operator
 
 import matplotlib as mpl
@@ -20,7 +20,7 @@ from functools import reduce
 
 
 class UTSStat(LegendMixin, YLimMixin, EelFigure):
-    u"""
+    """
     Plot statistics for a one-dimensional NDVar
 
     Parameters
@@ -184,7 +184,7 @@ class UTSStat(LegendMixin, YLimMixin, EelFigure):
             if len(ct) < 2:
                 legend = False
         else:
-            for i, ax, cell in zip(xrange(nax), self._axes, ct.cells):
+            for i, ax, cell in zip(range(nax), self._axes, ct.cells):
                 if X is not None:
                     X_ = Xct.data[cell]
 
@@ -197,7 +197,7 @@ class UTSStat(LegendMixin, YLimMixin, EelFigure):
                                  pmax, ptrend, clip)
                 self._plots.append(p)
                 legend_handles.update(p.legend_handles)
-            self._set_axtitle(axtitle, names=map(cellname, ct.cells))
+            self._set_axtitle(axtitle, names=list(map(cellname, ct.cells)))
 
         self._configure_yaxis(ct.Y, ylabel)
         self._configure_xaxis_dim(ct.Y.get_dim(xdim), xlabel, xticklabels)
@@ -324,7 +324,7 @@ class UTSStat(LegendMixin, YLimMixin, EelFigure):
         """
         nax = len(self._axes)
         if ax is None:
-            axes = xrange(nax)
+            axes = range(nax)
         else:
             axes = [ax]
 
@@ -351,7 +351,7 @@ class UTSStat(LegendMixin, YLimMixin, EelFigure):
 
 
 class UTS(LegendMixin, YLimMixin, XAxisMixin, EelFigure):
-    u"""Value by time plot for UTS data
+    """Value by time plot for UTS data
 
     Parameters
     ----------
@@ -416,8 +416,8 @@ class UTS(LegendMixin, YLimMixin, XAxisMixin, EelFigure):
         self.plots = []
         legend_handles = {}
         vlims = _base.find_fig_vlims(epochs, top, bottom)
-        colors = oneway_colors(max(map(len, epochs)))
-        for ax, layers in izip(self._axes, epochs):
+        colors = oneway_colors(max(list(map(len, epochs))))
+        for ax, layers in zip(self._axes, epochs):
             h = _ax_uts(ax, layers, xdim, vlims, colors)
             self.plots.append(h)
             legend_handles.update(h.legend_handles)
@@ -534,7 +534,7 @@ class UTSClusters(EelFigure):
         EelFigure.__init__(self, frame_title, layout)
         self._set_axtitle(axtitle, epochs)
 
-        colors = colors_for_oneway(range(n), cmap=cm)
+        colors = colors_for_oneway(list(range(n)), cmap=cm)
         self._caxes = []
         if overlay:
             ax = self._axes[0]
@@ -588,13 +588,13 @@ class _ax_uts(object):
         vmin, vmax = _base.find_uts_ax_vlim(layers, vlims)
 
         self.legend_handles = {}
-        for l, color in izip(layers, colors):
+        for l, color in zip(layers, colors):
             color = l.info.get('color', color)
             p = _plt_uts(ax, l, xdim, color)
             self.legend_handles[longname(l)] = p.plot_handle
             contours = l.info.get('contours', None)
             if contours:
-                for v, color in contours.iteritems():
+                for v, color in contours.items():
                     if v in contours:
                         continue
                     contours[v] = ax.axhline(v, color=color)

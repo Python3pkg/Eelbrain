@@ -1,7 +1,7 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
 
-from cPickle import dump, HIGHEST_PROTOCOL, Unpickler
+
+from pickle import dump, HIGHEST_PROTOCOL, Unpickler
 from importlib import import_module
 from itertools import chain
 import os
@@ -135,12 +135,12 @@ def update_subjects_dir(obj, subjects_dir, depth=0):
             obj.source.subjects_dir = subjects_dir
     elif depth:
         if hasattr(obj, '__dict__'):
-            values = obj.__dict__.itervalues()
+            values = iter(obj.__dict__.values())
         else:
             values = ()
 
         if isinstance(obj, dict):
-            values = chain(values, obj.itervalues())
+            values = chain(values, iter(obj.values()))
         elif isinstance(obj, (tuple, list)):
             values = chain(values, obj)
 

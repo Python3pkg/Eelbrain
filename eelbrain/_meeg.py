@@ -1,6 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 from collections import defaultdict
-from itertools import izip
+
 
 import numpy as np
 
@@ -12,7 +12,7 @@ from ._names import INTERPOLATE_CHANNELS
 
 def _out(out, epochs):
     if out is None:
-        return Datalist([[] for _ in xrange(len(epochs))])
+        return Datalist([[] for _ in range(len(epochs))])
     elif len(out) != len(epochs):
         raise ValueError("out needs same length as epochs, got %i/%i" %
                          (len(out), len(epochs)))
@@ -31,7 +31,7 @@ def new_rejection_ds(ds):
 def find_flat_epochs(epochs, flat=1e-13, out=None):
     out = _out(out, epochs)
     d = epochs.max('time') - epochs.min('time')
-    for i, chi in izip(*np.nonzero(d.get_data(('case', 'sensor')) < flat)):
+    for i, chi in zip(*np.nonzero(d.get_data(('case', 'sensor')) < flat)):
         ch = epochs.sensor.names[chi]
         if ch not in out[i]:
             out[i].append(ch)
@@ -67,7 +67,7 @@ def make_rej(ds):
 
     # construct dataset
     out = ds[('trigger',)]
-    out['accept'] = Var(np.array(map(len, interpolate)) <= 5)
+    out['accept'] = Var(np.array(list(map(len, interpolate))) <= 5)
     out[:, 'tag'] = ''
     out[INTERPOLATE_CHANNELS] = interpolate
     out.info[BAD_CHANNELS] = bad_channels

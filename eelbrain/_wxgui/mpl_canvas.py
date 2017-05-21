@@ -248,7 +248,7 @@ class CanvasFrame(EelbrainFrame):
                     top = float(values[0])
                     bottom = -top
                 elif len(values) == 2:
-                    bottom, top = map(float, values)
+                    bottom, top = list(map(float, values))
                 else:
                     raise ValueError("Wrong number of values")
             except Exception as exception:

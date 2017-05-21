@@ -2,12 +2,12 @@
 
 http://tkinter.unpythonic.net/wiki/tkFileDialog
 """
-from __future__ import print_function
-from Tkinter import Tk
-import tkFileDialog
-from tkFileDialog import Open, SaveAs
-import tkMessageBox
-import tkSimpleDialog
+
+from tkinter import Tk
+import tkinter.filedialog
+from tkinter.filedialog import Open, SaveAs
+import tkinter.messagebox
+import tkinter.simpledialog
 
 
 root = Tk()  # initialize application
@@ -22,7 +22,7 @@ def ask_saveas(title, message, filetypes, defaultDir=None, defaultFile=None):
 
 def ask_dir(title="Select Folder", message="Please Pick a Folder",
             must_exist=True):
-    return tkFileDialog.askdirectory(title=title, mustexist=must_exist)
+    return tkinter.filedialog.askdirectory(title=title, mustexist=must_exist)
 
 
 def ask_file(title, message, filetypes, directory, mult):
@@ -36,11 +36,11 @@ def ask(title="Overwrite File?",
         message="Duplicate filename. Do you want to overwrite?",
         cancel=False, default=True,  # True=YES, False=NO, None=Nothing
         ):
-    return tkMessageBox.askyesno(title, message)
+    return tkinter.messagebox.askyesno(title, message)
 
 
 def ask_str(message, title, default=''):
-    return tkSimpleDialog.askstring(title, message, initialvalue=default)
+    return tkinter.simpledialog.askstring(title, message, initialvalue=default)
 
 
 def copy_file(path):
@@ -57,11 +57,11 @@ def copy_text(text):
 
 def message(title, message="", icon='i'):
     if icon in 'i?':
-        tkMessageBox.showinfo(title, message)
+        tkinter.messagebox.showinfo(title, message)
     elif icon == '!':
-        tkMessageBox.showwarning(title, message)
+        tkinter.messagebox.showwarning(title, message)
     elif icon == 'error':
-        tkMessageBox.showerror(title, message)
+        tkinter.messagebox.showerror(title, message)
     else:
         raise ValueError("Invalid icon argument: %r" % icon)
 

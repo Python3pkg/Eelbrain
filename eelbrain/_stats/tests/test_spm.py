@@ -1,5 +1,5 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-import cPickle as pickle
+import pickle as pickle
 from nose.tools import eq_
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -22,7 +22,7 @@ def test_random_lm():
     # dummy coding
     ds = datasets.get_uts()
     lms = []
-    for i in xrange(5):
+    for i in range(5):
         ds['uts'].x += np.random.normal(0, 2, ds['uts'].shape)
         lms.append(LM('uts', 'A*B*Y', ds))
     rlm = RandomLM(lms)
@@ -32,7 +32,7 @@ def test_random_lm():
     # effect coding
     ds = datasets.get_uts()
     lms = []
-    for i in xrange(5):
+    for i in range(5):
         ds['uts'].x += np.random.normal(0, 2, ds['uts'].shape)
         lms.append(LM('uts', 'A*B*Y', ds, 'effect'))
     rlm = RandomLM(lms)

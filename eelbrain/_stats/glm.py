@@ -9,10 +9,10 @@ Hopkins, K. D. (1976). A Simplified Method for Determining Expected Mean
     Squares and Error Terms in the Analysis of Variance. Journal of
     Experimental Education, 45(2), 13--18.
 """
-from __future__ import division
-from __future__ import print_function
 
-from itertools import izip
+
+
+
 import logging
 
 import numpy as np
@@ -73,7 +73,7 @@ class hopkins_ems(dict):
 
     def __repr__(self):
         items = {}
-        for k, v in self.iteritems():
+        for k, v in self.items():
             kstr = ' %s' % k.name
             vstr = '(%s)' % ''.join(e.name + ', ' for e in v)
             items[kstr] = vstr
@@ -194,7 +194,7 @@ class LM(object):
         fmt = {'Y': getattr(self.Y, 'name', '<Y>'),
                'X': repr(self.X)}
         if kwargs:
-            fmt['kw'] = ', '.join([''] + map('='.join, kwargs))
+            fmt['kw'] = ', '.join([''] + list(map('='.join, kwargs)))
         else:
             fmt['kw'] = ''
         return "LM({Y}, {X}{kw})".format(**fmt)
@@ -420,7 +420,7 @@ class _NDANOVA(object):
             Maps of uncorrected p values (corresponding to f_maps).
         """
         p_maps = np.empty_like(f_maps)
-        for i in xrange(len(f_maps)):
+        for i in range(len(f_maps)):
             p_maps[i] = ftest_p(f_maps[i], self.dfs_nom[i], self.dfs_denom[i])
         return p_maps
 
@@ -535,7 +535,7 @@ class _IncrementalNDANOVA(_NDANOVA):
         self._SS_res = None
 
         self._x_orig = x_orig = {}
-        for i, x in models.iteritems():
+        for i, x in models.items():
             if x is None:
                 x_orig[i] = None
             else:
@@ -573,7 +573,7 @@ class _IncrementalNDANOVA(_NDANOVA):
             x_dict = self._x_perm
             if x_dict is None:
                 self._x_perm = x_dict = {}
-                for i, x in self._models.iteritems():
+                for i, x in self._models.items():
                     if x is None:
                         x_dict[i] = None
                     else:
@@ -585,7 +585,7 @@ class _IncrementalNDANOVA(_NDANOVA):
                     x_orig[i][1].take(perm, 1, x_dict[i][1])
 
         # calculate SS_res and MS_res for all models
-        for i, x in x_dict.iteritems():
+        for i, x in x_dict.items():
             ss_ = SS_res[i]
             if x is None:
                 ss(y, ss_)
@@ -595,7 +595,7 @@ class _IncrementalNDANOVA(_NDANOVA):
 
         # incremental comparisons
         np.divide(SS_res[0], self.x.df_error, MS_e)
-        for i in xrange(self.n_effects):
+        for i in range(self.n_effects):
             e, i1, i0 = self._comparisons[i]
             np.subtract(SS_res[i0], SS_res[i1], SS_diff)
             np.divide(SS_diff, e.df, MS_diff)
@@ -860,7 +860,7 @@ class ANOVA(object):
 
             # fit the models
             lms = {}
-            for idx, model in models.iteritems():
+            for idx, model in models.items():
                 if model.df_error > 0:
                     lm = LM(y, model)
                 else:
@@ -936,7 +936,7 @@ class ANOVA(object):
         table.midrule()
 
         # table body
-        for name, f_test in izip(self.names, self.f_tests):
+        for name, f_test in zip(self.names, self.f_tests):
             table.cell(name)
             table.cell(fmtxt.stat(f_test.SS))
             table.cell(f_test.df)

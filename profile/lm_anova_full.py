@@ -12,4 +12,4 @@ m = ds.eval("A*B*rm")
 fmap = np.empty((3, n_tests))
 e_ms = eelbrain._stats.glm._hopkins_ems_array(m)
 
-print "timeit -n1000 opt.anova_full_fmaps(y, m.full, m.xsinv, fmap, m._effect_to_beta, e_ms)"
+print("timeit -n1000 opt.anova_full_fmaps(y, m.full, m.xsinv, fmap, m._effect_to_beta, e_ms)")

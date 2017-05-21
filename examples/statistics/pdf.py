@@ -15,10 +15,10 @@ y = np.array([7, 3, 6, 6, 5, 8, 6, 7,
               24, 29, 10, 22, 25, 28, 22, 24])
 
 a = Factor([1, 0], repeat=3 * 8, name='A')
-b = Factor(range(3), tile=2, repeat=8, name='B')
+b = Factor(list(range(3)), tile=2, repeat=8, name='B')
 
 # Independent measures ANOVA:
-subject = Factor(range(8 * 6), name='subject', random=True)
+subject = Factor(list(range(8 * 6)), name='subject', random=True)
 anova_table = test.anova(y, a * b + subject(a % b), title="Independent Measures")
 
 # Save the table as pdf

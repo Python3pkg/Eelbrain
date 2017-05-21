@@ -58,7 +58,7 @@ def test_boxplot():
     p = plot.Barplot('fltvar', 'A%B', ds=ds, show=False)
     labels = p._ax.get_xticklabels()
     bbs = [l.get_window_extent() for l in labels]
-    for i in xrange(len(bbs) - 1):
+    for i in range(len(bbs) - 1):
         ok_(bbs[i].x1 < bbs[i + 1].x0)
 
 

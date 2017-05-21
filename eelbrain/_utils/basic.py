@@ -30,7 +30,7 @@ def deprecated(version, replacement):
     def dec(func):
         msg = ('%s is deprecated and will be removed in version %s' %
                (func.__name__, version))
-        if isinstance(replacement, basestring):
+        if isinstance(replacement, str):
             msg += '; ' + replacement
             call_func = func
         elif replacement is not None:
@@ -53,7 +53,7 @@ def log_level(arg):
     """Convert string to logging module constant"""
     if isinstance(arg, int):
         return arg
-    elif isinstance(arg, basestring):
+    elif isinstance(arg, str):
         try:
             return LOG_LEVELS[arg.upper()]
         except KeyError:
@@ -99,7 +99,7 @@ class intervals:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         self.i += 1
         if len(self.seq) <= self.i:
             raise StopIteration

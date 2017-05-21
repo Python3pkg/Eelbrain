@@ -1,6 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Statistical Parametric Mapping"""
-from itertools import izip
+
 from operator import mul
 
 import numpy as np
@@ -32,7 +32,7 @@ class LM(object):
         Optional information used by RandomLM.
     """
     def __init__(self, y, model, ds=None, coding='dummy', subject=None):
-        if subject is not None and not isinstance(subject, basestring):
+        if subject is not None and not isinstance(subject, str):
             raise TypeError("subject needs to be None or string, got %s"
                             % repr(subject))
 
@@ -94,7 +94,7 @@ class LM(object):
         return NDVar(t.reshape(self._shape), self.dims, info)
 
     def _n_columns(self):
-        return {term: s.stop - s.start for term, s in self._p.terms.iteritems()}
+        return {term: s.stop - s.start for term, s in self._p.terms.items()}
 
 
 class RandomLM(object):
@@ -115,11 +115,11 @@ class RandomLM(object):
         # make sure to have a unique subject label for each lm
         name_i = 0
         subjects = [lm.subject for lm in lms]
-        str_names = filter(None, subjects)
+        str_names = [_f for _f in subjects if _f]
         if len(set(str_names)) < len(str_names):
             raise ValueError("Duplicate subject names in %s" % str_names)
         new_name = 'S000'
-        for i in xrange(len(subjects)):
+        for i in range(len(subjects)):
             if not subjects[i]:
                 while new_name in subjects:
                     name_i += 1
@@ -217,7 +217,7 @@ class RandomLM(object):
             lm = self._lms[0]
             subject = self._subjects[0]
         else:
-            for lm, lm_subject in izip(self._lms, self._subjects):
+            for lm, lm_subject in zip(self._lms, self._subjects):
                 if lm_subject == subject:
                     break
             else:

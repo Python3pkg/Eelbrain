@@ -1,5 +1,5 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
+
 from eelbrain import datasets, plot
 from eelbrain._utils.testing import requires_mayavi, requires_mne_sample_data
 

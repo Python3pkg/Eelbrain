@@ -47,5 +47,5 @@ p_legend.close()
 report.sign()
 
 # print string representation and save
-print report.get_str()
+print(report.get_str())
 report.save_html('test_report')

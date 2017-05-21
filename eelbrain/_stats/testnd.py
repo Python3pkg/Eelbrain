@@ -20,10 +20,10 @@ n_samples : None | int
     or permutations is performed, then ``n_samples`` indicates the actual
     number of permutations that constitute the complete set.
 '''
-from __future__ import division, print_function
+
 
 from datetime import datetime, timedelta
-from itertools import izip
+
 from math import ceil
 from multiprocessing import Process, cpu_count
 from multiprocessing.queues import SimpleQueue
@@ -136,7 +136,7 @@ class _Result(object):
         return state
 
     def __setstate__(self, state):
-        for k, v in state.iteritems():
+        for k, v in state.items():
             setattr(self, k, v)
 
         # backwards compatibility:
@@ -205,7 +205,7 @@ class _Result(object):
         return None
 
     def _plot_sub(self):
-        if isinstance(self.sub, basestring) and self.sub == "<unsaved array>":
+        if isinstance(self.sub, str) and self.sub == "<unsaved array>":
             raise RuntimeError("The sub parameter was not saved for previous "
                                "versions of Eelbrain. Please recompute this "
                                "result with the current version.")
@@ -1291,7 +1291,7 @@ class _MultiEffectResult(_Result):
         Clusters only have stable ids for thresholded cluster distributions.
         """
         self._assert_has_cdist()
-        if isinstance(effect, basestring):
+        if isinstance(effect, str):
             effect = self.effects.index(effect)
         return self._cdist[effect].cluster(cluster_id)
 
@@ -1310,7 +1310,7 @@ class _MultiEffectResult(_Result):
             Map of p-values.
         """
         self._assert_has_cdist()
-        if isinstance(effect, basestring):
+        if isinstance(effect, str):
             effect = self.effects.index(effect)
         return self._cdist[effect].compute_probability_map(**sub)
 
@@ -1333,7 +1333,7 @@ class _MultiEffectResult(_Result):
             and 0 everywhere else.
         """
         self._assert_has_cdist()
-        if isinstance(effect, basestring):
+        if isinstance(effect, str):
             effect = self.effects.index(effect)
         return self._cdist[effect].masked_parameter_map(pmin, **sub)
 
@@ -1360,7 +1360,7 @@ class _MultiEffectResult(_Result):
         """
         self._assert_has_cdist()
         if effect is not None:
-            if isinstance(effect, basestring):
+            if isinstance(effect, str):
                 effect = self.effects.index(effect)
             return self._cdist[effect].clusters(pmin, maps, **sub)
         dss = []
@@ -1473,21 +1473,21 @@ class anova(_MultiEffectResult):
         else:
             if pmin is not None:
                 thresholds = (stats.ftest_f(pmin, e.df, df_den) for e, df_den in
-                              izip(effects, dfs_denom))
+                              zip(effects, dfs_denom))
             elif fmin is not None:
-                thresholds = (abs(fmin) for _ in xrange(len(effects)))
+                thresholds = (abs(fmin) for _ in range(len(effects)))
             elif tfce:
-                thresholds = ('tfce' for _ in xrange(len(effects)))
+                thresholds = ('tfce' for _ in range(len(effects)))
             else:
-                thresholds = (None for _ in xrange(len(effects)))
+                thresholds = (None for _ in range(len(effects)))
 
             cdists = [_ClusterDist(Y, samples, thresh, 1, 'F', e.name, tstart,
                                    tstop, criteria, parc, force_permutation)
-                      for e, thresh in izip(effects, thresholds)]
+                      for e, thresh in zip(effects, thresholds)]
 
             # Find clusters in the actual data
             do_permutation = 0
-            for cdist, fmap in izip(cdists, fmaps):
+            for cdist, fmap in zip(cdists, fmaps):
                 cdist.add_original(fmap)
                 do_permutation += cdist.do_permutation
 
@@ -1498,7 +1498,7 @@ class anova(_MultiEffectResult):
         # create ndvars
         dims = Y.dims[1:]
         f = []
-        for e, fmap, df_den in izip(effects, fmaps, dfs_denom):
+        for e, fmap, df_den in zip(effects, fmaps, dfs_denom):
             f0, f1, f2 = stats.ftest_f((0.05, 0.01, 0.001), e.df, df_den)
             info = _cs.stat_info('f', f0, f1, f2)
             f_ = NDVar(fmap, dims, info, e.name)
@@ -1507,7 +1507,7 @@ class anova(_MultiEffectResult):
         # store attributes
         _MultiEffectResult.__init__(self, Y, match, sub_arg, samples, tfce, pmin,
                                     cdists, tstart, tstop)
-        self.X = X if isinstance(X, basestring) else x_.name
+        self.X = X if isinstance(X, str) else x_.name
         self._effects = effects
         self._dfs_denom = dfs_denom
         self.f = f
@@ -1523,7 +1523,7 @@ class anova(_MultiEffectResult):
 
         # backwards compatibility
         if hasattr(self, 'df_den'):
-            df_den_temp = {e.name: df for e, df in self.df_den.iteritems()}
+            df_den_temp = {e.name: df for e, df in self.df_den.items()}
             del self.df_den
             self._dfs_denom = tuple(df_den_temp[e] for e in self.effects)
 
@@ -1531,7 +1531,7 @@ class anova(_MultiEffectResult):
         pmin = self.pmin or 0.05
         if self.samples:
             f_and_clusters = []
-            for e, fmap, df_den, cdist in izip(self._effects, self.f,
+            for e, fmap, df_den, cdist in zip(self._effects, self.f,
                                                self._dfs_denom, self._cdist):
                 # create f-map with cluster threshold
                 f0 = stats.ftest_f(pmin, e.df, df_den)
@@ -1546,7 +1546,7 @@ class anova(_MultiEffectResult):
 
         # uncorrected probability
         p_uncorr = []
-        for e, f, df_den in izip(self._effects, self.f, self._dfs_denom):
+        for e, f, df_den in zip(self._effects, self.f, self._dfs_denom):
             info = _cs.sig_info()
             pmap = stats.ftest_p(f.x, e.df, df_den)
             p_ = NDVar(pmap, f.dims, info, e.name)
@@ -1973,7 +1973,7 @@ class _ClusterDist:
             Conduct permutations regardless of whether there are any clusters.
         """
         assert y.has_case
-        assert parc is None or isinstance(parc, basestring)
+        assert parc is None or isinstance(parc, str)
         if threshold is None:
             kind = 'raw'
         elif isinstance(threshold, str):
@@ -2040,7 +2040,7 @@ class _ClusterDist:
         # prepare cluster minimum size criteria
         if criteria:
             criteria_ = []
-            for k, v in criteria.iteritems():
+            for k, v in criteria.items():
                 if k == 'mintime':
                     ax = y.get_axis('time') - 1
                     v = int(ceil(v / y.time.tstep))
@@ -2057,7 +2057,7 @@ class _ClusterDist:
                     elif ax == nad_ax:
                         ax = 0
 
-                axes = tuple(i for i in xrange(ndim) if i != ax)
+                axes = tuple(i for i in range(ndim) if i != ax)
                 criteria_.append((axes, v))
 
             if kind != 'cluster':
@@ -2086,7 +2086,7 @@ class _ClusterDist:
             dist_shape = (samples, len(parc_dim))
             dist_dims = ('case', parc_dim)
             parc_indexes = tuple(np.flatnonzero(parc_ == cell) for cell in parc_.cells)
-            max_axes = tuple(xrange(1, ndim))
+            max_axes = tuple(range(1, ndim))
         else:
             dist_shape = (samples,)
             dist_dims = None
@@ -2240,7 +2240,7 @@ class _ClusterDist:
             dist = dist_sub.x
 
         if dist.ndim > 1:
-            axes = tuple(xrange(1, dist.ndim))
+            axes = tuple(range(1, dist.ndim))
             dist = dist.max(axes)
 
         return dist
@@ -2308,7 +2308,7 @@ class _ClusterDist:
                                    "version of Eelbrain and is not compatible "
                                    "anymore. Please recompute this test.")
 
-        for k, v in state.iteritems():
+        for k, v in state.items():
             setattr(self, k, v)
         self.has_original = True
         self.finalize()
@@ -2322,7 +2322,7 @@ class _ClusterDist:
             args.append("tstart=%r" % self.tstart)
         if self.tstop:
             args.append("tstop=%r" % self.tstop)
-        for item in self.criteria.iteritems():
+        for item in self.criteria.items():
             args.append("%s=%r" % item)
         return args
 
@@ -2400,7 +2400,7 @@ class _ClusterDist:
 
         # move through each axis in both directions and discard descending
         # slope. Do most computationally intensive axis last.
-        for ax in xrange(x.ndim - 1, -1, -1):
+        for ax in range(x.ndim - 1, -1, -1):
             if ax == 0 and not self._all_adjacent:
                 shape = (len(x), -1)
                 xsa = x.reshape(shape)
@@ -2409,7 +2409,7 @@ class _ClusterDist:
 
                 conn_src = self._connectivity[:, 0]
                 conn_dst = self._connectivity[:, 1]
-                for i in xrange(axlen):
+                for i in range(axlen):
                     data = xsa[:, i]
                     outslice = outsa[:, i]
                     if not np.any(outslice):
@@ -2459,7 +2459,7 @@ class _ClusterDist:
 
                 # forward
                 kernel.fill(True)
-                for i in xrange(axlen - 1):
+                for i in range(axlen - 1):
                     kernel[diff[i] > 0] = True
                     kernel[diff[i] < 0] = False
                     nodiff = diff[i] == 0
@@ -2468,7 +2468,7 @@ class _ClusterDist:
 
                 # backward
                 kernel.fill(True)
-                for i in xrange(axlen - 2, -1, -1):
+                for i in range(axlen - 2, -1, -1):
                     kernel[diff[i] < 0] = True
                     kernel[diff[i] > 0] = False
                     nodiff = diff[i] == 0
@@ -2522,7 +2522,7 @@ class _ClusterDist:
         compression = []
         for ax, dim in enumerate(cluster_map.dims):
             extents = np.empty((n_clusters, len(dim)), dtype=np.bool_)
-            axes = tuple(i for i in xrange(ndim) if i != ax)
+            axes = tuple(i for i in range(ndim) if i != ax)
             compression.append((ax, dim, axes, extents))
 
         # find extents for all clusters
@@ -2882,7 +2882,7 @@ class _MergedTemporalClusterDist:
                 if any(d[i].n_clusters for d in cdists):
                     dist[effect] = np.column_stack([d[i].dist for d in cdists if d[i].dist is not None])
             if len(dist):
-                dist = {c: d.max(1) for c, d in dist.iteritems()}
+                dist = {c: d.max(1) for c, d in dist.items()}
         else:
             self.samples = cdists[0].samples
             if any(d.n_clusters for d in cdists):
@@ -2895,7 +2895,7 @@ class _MergedTemporalClusterDist:
 
     def correct_cluster_p(self, res):
         clusters = res.find_clusters()
-        keys = clusters.keys()
+        keys = list(clusters.keys())
 
         if not clusters.n_cases:
             return clusters
@@ -2949,7 +2949,7 @@ def run_permutation(test_func, dist, iterator, use_mp=True):
         for perm in iterator:
             out_queue.put(perm)
 
-        for _ in xrange(len(workers) - 1):
+        for _ in range(len(workers) - 1):
             out_queue.put(None)
 
         logger = logging.getLogger(__name__)
@@ -2978,7 +2978,7 @@ def setup_workers(test_func, dist):
     y, shape = dist.data_for_permutation()
     args = (permutation_queue, dist_queue, y, shape, test_func, dist.map_args)
     workers = []
-    for _ in xrange(N_WORKERS):
+    for _ in range(N_WORKERS):
         w = Process(target=permutation_worker, args=args)
         w.start()
         workers.append(w)
@@ -3005,7 +3005,7 @@ def run_permutation_me(test, dists, iterator):
         for perm in iterator:
             out_queue.put(perm)
 
-        for _ in xrange(len(workers) - 1):
+        for _ in range(len(workers) - 1):
             out_queue.put(None)
 
         logger = logging.getLogger(__name__)
@@ -3017,11 +3017,11 @@ def run_permutation_me(test, dists, iterator):
         map_processor = get_map_processor(*dist.map_args)
 
         stat_maps = test.preallocate((0,) + dist.shape)
-        stat_maps_iter = [stat_maps[i] for i in xrange(len(stat_maps))]
+        stat_maps_iter = [stat_maps[i] for i in range(len(stat_maps))]
         if thresholds:
-            stat_maps_iter = zip(stat_maps_iter, thresholds, dists)
+            stat_maps_iter = list(zip(stat_maps_iter, thresholds, dists))
         else:
-            stat_maps_iter = zip(stat_maps_iter, dists)
+            stat_maps_iter = list(zip(stat_maps_iter, dists))
 
         for i, perm in enumerate(iterator):
             test.map(y, perm)
@@ -3052,7 +3052,7 @@ def setup_workers_me(test_func, dists, thresholds):
     args = (permutation_queue, dist_queue, y, shape, test_func, dist.map_args,
             thresholds)
     workers = []
-    for _ in xrange(N_WORKERS):
+    for _ in range(N_WORKERS):
         w = Process(target=permutation_worker_me, args=args)
         w.start()
         workers.append(w)
@@ -3072,7 +3072,7 @@ def permutation_worker_me(in_queue, out_queue, y, shape, test, map_args,
     y = np.frombuffer(y, np.float64, n).reshape((shape[0], -1))
     iterator = list(test.preallocate(shape))
     if thresholds:
-        iterator = zip(iterator, thresholds)
+        iterator = list(zip(iterator, thresholds))
     map_processor = get_map_processor(*map_args)
     while True:
         perm = in_queue.get()
@@ -3094,6 +3094,6 @@ def distribution_worker_me(dist_arrays, dist_shape, in_queue):
              for d in dist_arrays]
     samples = dist_shape[0]
     for i in trange(samples, desc="Permutation test", unit=' permutations'):
-        for dist, v in izip(dists, in_queue.get()):
+        for dist, v in zip(dists, in_queue.get()):
             if dist is not None:
                 dist[i] = v

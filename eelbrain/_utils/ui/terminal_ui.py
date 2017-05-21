@@ -1,11 +1,11 @@
 """Terminal-based implementation of the Eelbrain ui functions."""
-from __future__ import print_function
+
 import os
 
 
 def ask_saveas(title, messagefiletypes, defaultDir, defaultFile):
     msg = "%s (%s): " % (title, message)
-    path = raw_input(msg)
+    path = input(msg)
     path = os.path.expanduser(path)
 
     dirname = os.path.split(path)[0]
@@ -29,7 +29,7 @@ def ask_saveas(title, messagefiletypes, defaultDir, defaultFile):
 def ask_dir(title="Select Folder", message="Please Pick a Folder",
             must_exist=True):
     msg = "%s (%s): " % (title, message)
-    path = raw_input(msg)
+    path = input(msg)
     path = os.path.expanduser(path)
     if os.path.exists(path) and os.path.isdir(path):
         return path
@@ -39,7 +39,7 @@ def ask_dir(title="Select Folder", message="Please Pick a Folder",
 
 def ask_file(title, message, filetypes, directory, mult):
     msg = "%s (%s): " % (title, message)
-    path = raw_input(msg)
+    path = input(msg)
     path = os.path.expanduser(path)
     if os.path.exists(path):
         return path
@@ -54,7 +54,7 @@ def ask(title="Overwrite File?",
     print(message)
     c = ''
     while c not in ['y', 'n', 'c']:
-        c = raw_input("([y]es / [n]o / [c]ancel)")
+        c = input("([y]es / [n]o / [c]ancel)")
     if c == 'y':
         return True
     elif c == 'n':
@@ -64,7 +64,7 @@ def ask(title="Overwrite File?",
 
 
 def ask_color(parent=None, default=None):
-    c = raw_input('Color = ')
+    c = input('Color = ')
     return eval(c)
 
 

@@ -28,4 +28,4 @@ ds = load.txt.tsv(filepath, delimiter=None)
 ds2 = ds[ds['type'] != 'NA']
 
 # ANOVA
-print test.anova('prestige', '(income + education) * type', ds=ds2)
+print(test.anova('prestige', '(income + education) * type', ds=ds2))

@@ -46,7 +46,7 @@ for folder in folders:
             iconname = '/'.join((folder, name[:-4]))
             files[iconname] = path
 
-for basename, names in tango.iteritems():
+for basename, names in tango.items():
     for name in names:
         path = os.path.join('tango', basename, name + '.png')
         iconname = '/'.join(('tango', basename, name))
@@ -65,8 +65,8 @@ img2py('system-icons/eelbrain/eelbrain256.png', python_file, append=False,
 img2py('system-icons/eelbrain/eelbrain32.png', python_file, append=True,
        imgName='eelbrain', icon=True, **kwargs)
 
-for name, image_file in files.iteritems():
+for name, image_file in files.items():
     img2py(image_file, python_file, append=True,
            imgName=name, icon=False, **kwargs)
 
-print "Done"
+print("Done")

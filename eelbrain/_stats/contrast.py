@@ -61,7 +61,7 @@ np_ufuncs = {'abs': np.abs,
 
 FUNCS = {name: (kind, func) for funcs, kind in
          ((np_afuncs, 'afunc'), (np_bfuncs, 'bfunc'), (np_ufuncs, 'ufunc'))
-         for name, func in funcs.iteritems()}
+         for name, func in funcs.items()}
 OP_FUNCS = {'-': np.subtract, '+': np.add}
 
 
@@ -137,8 +137,8 @@ def parse_spm(streamer, process_op=True):
     # parse function
     lookahead = streamer.lookahead()
     if lookahead in FUNCS and streamer.lookahead(2) == '(':
-        kind, func = FUNCS[streamer.next()]
-        streamer.next()
+        kind, func = FUNCS[next(streamer)]
+        next(streamer)
         args = parse_args(streamer)
         if kind == 'ufunc':
             if len(args) != 1:
@@ -154,14 +154,14 @@ def parse_spm(streamer, process_op=True):
                            func.__name__)
         return kind, func, args
     elif lookahead == '(':
-        streamer.next()
+        next(streamer)
         out = parse_spm(streamer)
-        if streamer.next() != ')':
+        if next(streamer) != ')':
             streamer.error("Expected )")
     else:
         # beginning of cell comparator cell
         cell_1 = parse_cell(streamer)
-        comp = streamer.next()
+        comp = next(streamer)
         if comp not in '<>':
             streamer.error("Expected '<' or '>'")
         cell_2 = parse_cell(streamer)
@@ -173,7 +173,7 @@ def parse_spm(streamer, process_op=True):
         return out
     # look for operator
     while (not streamer.eof) and streamer.lookahead() not in ',)':
-        op = streamer.next()
+        op = next(streamer)
         if op in OP_FUNCS:
             arg = parse_spm(streamer, False)
             out = ('bfunc', OP_FUNCS[op], (out, arg))
@@ -183,7 +183,7 @@ def parse_spm(streamer, process_op=True):
 
 
 def parse_cell(streamer):
-    cell = [streamer.next()]
+    cell = [next(streamer)]
     while streamer.lookahead() == '|':
         cell.append(streamer.next(2))
     if len(cell) == 1:
@@ -194,10 +194,10 @@ def parse_cell(streamer):
 
 def parse_args(streamer):
     args = [parse_spm(streamer)]
-    delim = streamer.next()
+    delim = next(streamer)
     while delim == ',':
         args.append(parse_spm(streamer))
-        delim = streamer.next()
+        delim = next(streamer)
     if delim != ')':
         streamer.error("Expected ')'")
     return tuple(args)

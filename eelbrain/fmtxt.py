@@ -47,19 +47,19 @@ The module also provides functions that work with fmtxt objects:
 - :func:`save_html` for saving an HTML file
 
 """
-from __future__ import print_function
+
 
 
 import datetime
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 from importlib import import_module
-from itertools import izip
+
 import os
-import cPickle as pickle
+import pickle as pickle
 import re
 import shutil
 import socket
-from StringIO import StringIO
+from io import StringIO
 import tempfile
 import time
 
@@ -95,7 +95,7 @@ preferences = dict(
 # RTF:
 #     Formatted RTF if the tag is in _RTF_SUBS, otherwise it is ignored
 
-_STR_SUBS = {r'_': u'(%s)'}
+_STR_SUBS = {r'_': '(%s)'}
 
 _TEX_IGNORE = ('font',)
 _TEX_SUBS = {'paragraph': "\n\n%s\n\n",
@@ -129,13 +129,13 @@ def escape_html(text):
     return _html_escape_pattern.sub(_html_repl, text).encode('ascii', 'xmlcharrefreplace')
 
 
-STYLE = u"""
+STYLE = """
 .float {
     float:left
 }
 """
 
-_html_doc_template = u"""<!DOCTYPE html>
+_html_doc_template = """<!DOCTYPE html>
 <html>
 <head>
     {meta}<title>{title}</title>{style}
@@ -170,7 +170,7 @@ def get_pdf(tex_obj):
                           "available")
 
     txt = tex(tex_obj)
-    document = u"""
+    document = """
 \\documentclass{article}
 \\usepackage{booktabs}
 \\begin{document}
@@ -277,7 +277,7 @@ def _save_txt(text, path=None):
                              filetypes=[("Plain Text File (*.txt)", "*.txt")])
     if path:
         with open(path, 'w') as fid:
-            if isinstance(text, unicode):
+            if isinstance(text, str):
                 text = text.encode('utf-8')
             fid.write(text)
 
@@ -324,7 +324,7 @@ def html(text, env={}):
     if hasattr(text, 'get_html'):
         return text.get_html(env)
     else:
-        return unicode(text)
+        return str(text)
 
 
 def make_html_doc(body, root, resource_dir=None, title=None, meta=None):
@@ -359,7 +359,7 @@ def make_html_doc(body, root, resource_dir=None, title=None, meta=None):
             title = "Untitled"
 
     if meta:
-        meta = '<meta %s>\n' % ' '.join('%s=%r' % x for x in meta.iteritems())
+        meta = '<meta %s>\n' % ' '.join('%s=%r' % x for x in meta.items())
     else:
         meta = ''
 
@@ -388,8 +388,8 @@ def tex(text, env={}):
         return str(text)
 
 
-_html_temp = u'<{tag}>{body}</{tag}>'
-_html_temp_opt = u'<{tag} {options}>{body}</{tag}>'
+_html_temp = '<{tag}>{body}</{tag}>'
+_html_temp_opt = '<{tag} {options}>{body}</{tag}>'
 
 
 def _html_element(tag, body, env, options=None):
@@ -407,7 +407,7 @@ def _html_element(tag, body, env, options=None):
         HTML options to be inserted in the start tag.
     """
     if options:
-        opt = ' '.join('%s="%s"' % item for item in options.iteritems())
+        opt = ' '.join('%s="%s"' % item for item in options.items())
         txt = _html_temp_opt.format(tag=tag, options=opt, body=html(body, env))
     else:
         txt = _html_temp.format(tag=tag, body=html(body, env))
@@ -518,13 +518,13 @@ class FMTextElement(object):
         return items
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         return self.get_str()
 
     def __add__(self, other):
-        if isinstance(other, basestring) and other == '':
+        if isinstance(other, str) and other == '':
             # added to prevent matplotlib from thinking Image is a file path
             raise ValueError("Can't add empty string")
 
@@ -540,7 +540,7 @@ class FMTextElement(object):
 
     def _get_core(self, env):
         "Unicode core"
-        return unicode(self.content)
+        return str(self.content)
 
     def get_html(self, env):
         "Complete HTML representation"
@@ -715,7 +715,7 @@ class Code(FMTextElement):
         Multiline string to be displayed as code.
     """
     def __init__(self, content):
-        assert isinstance(content, basestring)
+        assert isinstance(content, str)
         FMTextElement.__init__(self, content, 'code')
 
     def get_tex(self, env):
@@ -729,8 +729,8 @@ class Code(FMTextElement):
 class Text(FMTextElement):
 
     def __init__(self, content, tag=None):
-        if not isinstance(content, basestring):
-            content = unicode(content)
+        if not isinstance(content, str):
+            content = str(content)
         FMTextElement.__init__(self, content, tag)
 
 
@@ -738,7 +738,7 @@ class Link(FMTextElement):
 
     def __init__(self, content, url):
         FMTextElement.__init__(self, content)
-        self.url = unicode(url)
+        self.url = str(url)
 
     def get_html(self, env):
         return '<a href="%s">%s</a>' % (self.url, FMTextElement.get_html(self, env))
@@ -859,7 +859,7 @@ class Stars(FMTextElement):
     so that alignment to the right can be used.
     """
     def __init__(self, n, of=3, tag="^"):
-        if isinstance(n, basestring):
+        if isinstance(n, str):
             self.n = len(n.strip())
         else:
             self.n = n
@@ -1035,7 +1035,7 @@ class Row(list):
         return "Row(%s)" % list.__repr__(self)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         return ' '.join([str(cell) for cell in self])
@@ -1045,7 +1045,7 @@ class Row(list):
         lens = []
         for cell in self:
             cell_len = len(cell.get_str(env))
-            for _ in xrange(len(cell)):
+            for _ in range(len(cell)):
                 lens.append(cell_len / len(cell))  # TODO: better handling of multicolumn
         return lens
 
@@ -1200,7 +1200,7 @@ class Table(FMTextElement):
     def endline(self):
         "Finish the active row"
         if self._active_row is not None:
-            for _ in xrange(len(self.columns) - len(self._active_row)):
+            for _ in range(len(self.columns) - len(self._active_row)):
                 self._active_row.append(Cell())
         self._active_row = None
 
@@ -1227,7 +1227,7 @@ class Table(FMTextElement):
         else:
             if isinstance(span, (list, tuple)):
                 span = '%i-%i' % span
-            elif isinstance(span, basestring):
+            elif isinstance(span, str):
                 if not re.match('\d+-\d+', span):
                     raise ValueError("span=%r" % span)
             else:
@@ -1262,7 +1262,7 @@ class Table(FMTextElement):
         if caption and not preferences['html_tables_in_fig']:
             table.append(caption)
         for row in self._table:
-            if isinstance(row, basestring):
+            if isinstance(row, str):
                 if row == "\\midrule":
                     pass
 #                     table.append('<tr style="border-bottom:1px solid black">')
@@ -1288,12 +1288,12 @@ class Table(FMTextElement):
 
     def get_rtf(self, env={}):
         # header
-        rows = ['\cellx%i000' % i for i in xrange(len(self.columns))]
+        rows = ['\cellx%i000' % i for i in range(len(self.columns))]
         rows.insert(0, '\\trowd')
         rows.append('\\row')
         # body
         for row in self._table:
-            if isinstance(row, basestring):
+            if isinstance(row, str):
                 if row == "\\midrule":
                     pass
             else:
@@ -1321,7 +1321,7 @@ class Table(FMTextElement):
         # determine column widths
         widths = []
         for row in self._table:
-            if not isinstance(row, basestring):  # some commands are str
+            if not isinstance(row, str):  # some commands are str
                 row_strlen = row._strlen(env)
                 while len(row_strlen) < len(self.columns):
                     row_strlen.append(0)
@@ -1336,7 +1336,7 @@ class Table(FMTextElement):
         # collect lines
         txtlines = []
         for row in self._table:
-            if isinstance(row, basestring):  # commands
+            if isinstance(row, str):  # commands
                 if row == r'\midrule':
                     txtlines.append(midrule)  # "_"*l_len)
                 elif row == r'\bottomrule':
@@ -1364,7 +1364,7 @@ class Table(FMTextElement):
         if self._title is not None:
             out = ['', self._title.get_str(env), ''] + out
 
-        if isinstance(self._caption, basestring):
+        if isinstance(self._caption, str):
             out.append(self._caption)
         elif self._caption:
             out.append(str(self._caption))
@@ -1379,7 +1379,7 @@ class Table(FMTextElement):
         # Body
         tex_body = []
         for row in self._table:
-            if isinstance(row, basestring):
+            if isinstance(row, str):
                 tex_body.append(row)
             else:
                 tex_body.append(row.get_tex(env))
@@ -1407,7 +1407,7 @@ class Table(FMTextElement):
         """
         table = []
         for row in self._table:
-            if isinstance(row, basestring):
+            if isinstance(row, str):
                 pass
             else:
                 table.append(row.get_tsv(delimiter, fmt=fmt))
@@ -1533,7 +1533,7 @@ class Image(FMTextElement, StringIO):
             if self.format == 'svg':  # special case for embedded svg
                 # SVGs can contain non-ASCII characters which cause
                 # UnicodeDecodeError when combined with unicode
-                out = ''.join(map(unichr, map(ord, buf)))
+                out = ''.join(map(chr, list(map(ord, buf))))
                 return out
             # http://stackoverflow.com/a/7389616/166700
             data = buf.encode('base64').replace('\n', '')
@@ -1742,7 +1742,7 @@ class Section(FMText):
     def get_str(self, env={}):
         level = env.get('level', (1,))
         number = '.'.join(map(str, level))
-        title = ' '.join((number, unicode(self._heading)))
+        title = ' '.join((number, str(self._heading)))
         if len(level) == 1:
             underline_char = '='
         else:
@@ -1798,7 +1798,7 @@ class Report(Section):
         Section.__init__(self, title, content)
 
     def _repr_items(self):
-        out = map(repr, (self._heading, self._author, self._date, self.content))
+        out = list(map(repr, (self._heading, self._author, self._date, self.content)))
         if self._site_title:
             out.append(repr(self._site_title))
         return out
@@ -1938,7 +1938,7 @@ class Report(Section):
             text = "%s version %s" % (name, mod.__version__)
             info.append(text)
 
-        signature = u' \u2014 \n'.join(info)
+        signature = ' \u2014 \n'.join(info)
         self.add_paragraph(signature)
 
 
@@ -2007,7 +2007,7 @@ def peq(content, subscript=None, stars=None, of=3):
 def delim_list(items, delimiter=', '):
     delim = asfmtext(delimiter)
     out = list(items)
-    for i in xrange(len(out) - 1, 0, -1):
+    for i in range(len(out) - 1, 0, -1):
         out.insert(i, delim)
     return out
 
@@ -2078,9 +2078,9 @@ def im_table(ims, header=None, name="im_table"):
         raise NotImplementedError("Not all images have same shape")
     im_h, im_w, _ = shape
 
-    xs = range(0, im_w * n_cols, im_w)
+    xs = list(range(0, im_w * n_cols, im_w))
     y0 = 0 if header is None else 25
-    ys = range(y0, y0 + im_h * n_rows, im_h)
+    ys = list(range(y0, y0 + im_h * n_rows, im_h))
 
     svg_h = y0 + im_h * n_rows
     svg_w = im_w * n_cols
@@ -2088,14 +2088,14 @@ def im_table(ims, header=None, name="im_table"):
     if header is not None:
         assert len(header) == n_cols
         p = '<text x="{x}" y="{y}">{txt}</text>'
-        for x, txt in izip(xs, header):
+        for x, txt in zip(xs, header):
             item = p.format(x=x, y=18, txt=txt)
             svg.append(item)
 
     p = ('<image x="{x}" y="{y}" width="{w}" height="{h}" xlink:href='
          '"data:image/png;base64,{data}" />')
-    for y, line in izip(ys, ims):
-        for x, im in izip(xs, line):
+    for y, line in zip(ys, ims):
+        for x, im in zip(xs, line):
             data = _array_as_png(im)
             item = p.format(x=x, y=y, w=im_w, h=im_h, data=data)
             svg.append(item)

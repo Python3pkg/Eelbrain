@@ -67,7 +67,7 @@ class RawSource(RawPipe):
         else:
             old_bads = None
         # find new bad channels
-        if isinstance(bad_chs, (basestring, int)):
+        if isinstance(bad_chs, (str, int)):
             bad_chs = (bad_chs,)
         raw = self.load(subject, session, add_bads=False)
         sensor = load.fiff.sensor_dim(raw)
@@ -77,9 +77,9 @@ class RawSource(RawPipe):
             new_bads = sorted(set(old_bads).union(new_bads))
         # print change
         if old_bads is None:
-            print("-> %s" % new_bads)
+            print(("-> %s" % new_bads))
         else:
-            print("%s -> %s" % (old_bads, new_bads))
+            print(("%s -> %s" % (old_bads, new_bads)))
         # write new bad channels
         text = '\n'.join(new_bads)
         with open(path, 'w') as fid:
@@ -195,7 +195,7 @@ class RawICA(CachedRawPipe):
 
     def __init__(self, name, source, path, ica_path, log, session, kwargs):
         CachedRawPipe.__init__(self, name, source, path, log)
-        if isinstance(session, basestring):
+        if isinstance(session, str):
             self.session = (session,)
         else:
             assert isinstance(session, tuple)
@@ -328,7 +328,7 @@ def assemble_pipeline(raw_dict, raw_path, bads_path, cache_path, ica_path, log):
 
 
 def pipeline_dict(pipeline):
-    return {k: v.as_dict() for k, v in pipeline.iteritems()}
+    return {k: v.as_dict() for k, v in pipeline.items()}
 
 
 def compare_pipelines(old, new):
@@ -372,8 +372,8 @@ def compare_pipelines(old, new):
         if len(to_check) == n:
             raise RuntimeError("Queue not decreasing")
 
-    bad_raw = {k: v for k, v in out.iteritems() if v != 'good'}
-    bad_ica = {k: v for k, v in bad_raw.iteritems() if
+    bad_raw = {k: v for k, v in out.items() if v != 'good'}
+    bad_ica = {k: v for k, v in bad_raw.items() if
                new.get(k, old.get(k))['type'] == 'RawICA'}
     return bad_raw, bad_ica
 
@@ -399,7 +399,7 @@ def ask_to_delete_ica_files(raw, status, filenames):
 
     command = ''
     while command not in ('abort', 'delete', 'ignore'):
-        command = raw_input("type delete/abort/ignore: ").lower()
+        command = input("type delete/abort/ignore: ").lower()
 
     if command == 'delete':
         for filename in filenames:

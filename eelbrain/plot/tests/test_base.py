@@ -20,7 +20,7 @@ def assert_layout_ok(*args, **kwargs):
 
 def test_layout():
     "Test the Layout class"
-    for nax in xrange(1, 100):
+    for nax in range(1, 100):
         assert_layout_ok(nax, 1.5, 2, True, w=5)
         assert_layout_ok(nax, 1.5, 2, True, h=5)
         assert_layout_ok(nax, 1.5, 2, True, axw=5)
@@ -38,7 +38,7 @@ def test_layout():
 def test_vlims():
     "Test vlim determination"
     ds = datasets.get_uts()
-    epochs = [[ds[i: i+5, 'uts'].mean('case')] for i in xrange(0, 10, 5)]
+    epochs = [[ds[i: i+5, 'uts'].mean('case')] for i in range(0, 10, 5)]
     meas = ds['uts'].info.get('meas')
 
     lims = _base.find_fig_vlims(epochs)

@@ -1,6 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 import fnmatch
-from itertools import izip
+
 import re
 
 import numpy as np
@@ -144,7 +144,7 @@ def _t_contrast_rel_expand_cells(cells, all_cells):
             primary_cells.add(cell)
         else:
             r = re.compile(fnmatch.translate(cellname(cell, '|')))
-            base = tuple(c for c, cn in izip(all_cells, all_cellnames) if r.match(cn))
+            base = tuple(c for c, cn in zip(all_cells, all_cellnames) if r.match(cn))
             if len(base) == 0:
                 raise ValueError("%r does not match any cells in data %r" %
                                  (cellname(cell, '|'), ', '.join(all_cellnames)))
@@ -157,7 +157,7 @@ def _t_contrast_rel_expand_cells(cells, all_cells):
 def _t_contrast_rel_data(y, indexes, cells, mean_cells):
     "Create {cell: data} dictionary"
     data = {cell: y[indexes[cell]] for cell in cells}
-    for name, cells_ in mean_cells.iteritems():
+    for name, cells_ in mean_cells.items():
         cell = cells_[0]
         x = data[cell].copy()
         for cell in cells_[1:]:

@@ -1,5 +1,5 @@
 """Test mne interaction"""
-from itertools import izip
+
 import os
 
 from nose.tools import eq_, ok_, assert_less_equal, assert_not_equal, assert_in
@@ -217,7 +217,7 @@ def test_source_space():
         ss = SourceSpace(vertno, subject, 'ico-4', subjects_dir)
 
         # labels
-        for hemi_vertices, hemi in izip(ss.vertno, ('lh', 'rh')):
+        for hemi_vertices, hemi in zip(ss.vertno, ('lh', 'rh')):
             labels, _, names = read_annot(annot_path % (subject, hemi, 'aparc'))
             start = 0 if hemi == 'lh' else len(ss.lh_vertno)
             hemi_tag = '-' + hemi

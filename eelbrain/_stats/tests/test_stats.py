@@ -48,7 +48,7 @@ def test_corr():
 
     corr = stats.corr(y, x)
     p = stats.rtest_p(corr, df)
-    for i in xrange(len(corr)):
+    for i in range(len(corr)):
         r_sp, p_sp = scipy.stats.pearsonr(y[:, i], x)
         assert_almost_equal(corr[i], r_sp)
         assert_almost_equal(p[i], p_sp)
@@ -63,7 +63,7 @@ def test_corr():
     for perm in permute_order(n_cases, 2):
         y_perm[perm] = y
         stats.corr(y, x, corr, perm)
-        for i in xrange(len(corr)):
+        for i in range(len(corr)):
             r_sp, _ = scipy.stats.pearsonr(y_perm[:, i], x)
             assert_almost_equal(corr[i], r_sp)
 

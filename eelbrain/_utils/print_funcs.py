@@ -1,6 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 "Some functions which print data in a different way"
-from __future__ import print_function
+
 import numpy as np
 
 
@@ -12,7 +12,7 @@ def dicttree(dictionary):
 def _dict_repr(dictionary, indent=0):
     out = []
     head = ' ' * indent
-    for k, v in dictionary.iteritems():
+    for k, v in dictionary.items():
         if isinstance(v, dict):
             out.append(head + repr(k))
             out.extend(_dict_repr(v, indent=indent + 3))
@@ -34,7 +34,7 @@ def strdict(dictionary, w=100, fmt='%r', sort=True, max_v_lines=6):
     if sort:
         keys = sorted(dictionary)
     else:
-        keys = dictionary.keys()
+        keys = list(dictionary.keys())
 
     for k in keys:
         v = dictionary[k]
@@ -50,7 +50,7 @@ def strdict(dictionary, w=100, fmt='%r', sort=True, max_v_lines=6):
     for k, v in items:
         lines.append(': '.join((k.ljust(k_len), v[:v_len])))
         if len(v) >= v_len:
-            for i in xrange(v_len, len(v) + v_len - 1, v_len):
+            for i in range(v_len, len(v) + v_len - 1, v_len):
                 lines.append(empty_k + v[i : i + v_len])
                 if i > v_len * max_v_lines:
                     lines.append(empty_k + '... ')

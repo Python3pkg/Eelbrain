@@ -1,6 +1,6 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
-from itertools import izip, repeat
+
+from itertools import repeat
 import warnings
 
 from nose.tools import (eq_, assert_almost_equal, assert_is_instance,
@@ -70,7 +70,7 @@ def assert_f_tests_equal(f_tests, r_res, fs, fnds, r_kind='aov'):
             else:
                 raise RuntimeError("Effect %s not in ezANOVA" % f_test_name)
     elif r_kind == 'rmaov':
-        r_results = [r_res[i][0] for i in xrange(len(f_tests))]
+        r_results = [r_res[i][0] for i in range(len(f_tests))]
     else:
         r_results = repeat(r_res, len(f_tests))
 
@@ -99,7 +99,7 @@ def run_as_ndanova(y, x, ds):
     res = testnd.anova(ndvar, x, ds=ds)
     f1 = [fmap.x[0] for fmap in res.f]
     f2 = [fmap.x[1] for fmap in res.f]
-    for f1_, f2_ in izip(f1, f2):
+    for f1_, f2_ in zip(f1, f2):
         eq_(f1_, f2_)
     return f1
 
@@ -299,9 +299,9 @@ def test_lmfitter():
     f_maps_full = lm_full.map(y)
     p_maps_full = lm_full.p_maps(f_maps)
 
-    for f, f_full in izip(f_maps, f_maps_full):
+    for f, f_full in zip(f_maps, f_maps_full):
         assert_allclose(f, f_full)
-    for p, p_full in izip(p_maps, p_maps_full):
+    for p, p_full in zip(p_maps, p_maps_full):
         assert_allclose(p, p_full)
 
     # repeated measures
@@ -311,6 +311,6 @@ def test_lmfitter():
     p_maps = lm.p_maps(f_maps)
 
     aov = test.ANOVA(y[:, 0], x)
-    for f_test, f_map, p_map in izip(aov.f_tests, f_maps, p_maps):
+    for f_test, f_map, p_map in zip(aov.f_tests, f_maps, p_maps):
         assert_almost_equal(f_map[0], f_test.F)
         assert_almost_equal(p_map[0], f_test.p)

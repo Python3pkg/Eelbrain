@@ -75,7 +75,7 @@ def permute_order(n, samples=10000, replacement=False, unit=None, seed=0):
 
     if _YIELD_ORIGINAL:
         original = np.arange(n)
-        for _ in xrange(samples):
+        for _ in range(samples):
             yield original
         return
 
@@ -84,11 +84,11 @@ def permute_order(n, samples=10000, replacement=False, unit=None, seed=0):
 
     if unit is None:
         if replacement:
-            for _ in xrange(samples):
+            for _ in range(samples):
                 yield np.random.randint(n, n)
         else:
             index = np.arange(n)
-            for _ in xrange(samples):
+            for _ in range(samples):
                 np.random.shuffle(index)
                 yield index
     else:
@@ -98,7 +98,7 @@ def permute_order(n, samples=10000, replacement=False, unit=None, seed=0):
             idx_orig = np.arange(n)
             idx_perm = np.arange(n)
             unit_idxs = [np.nonzero(unit == cell)[0] for cell in unit.cells]
-            for _ in xrange(samples):
+            for _ in range(samples):
                 for idx_ in unit_idxs:
                     v = idx_orig[idx_]
                     np.random.shuffle(v)
@@ -142,10 +142,10 @@ def permute_sign_flip(n, samples=10000, seed=0):
                                   "without repetition")
     if samples < 0:
         # do all permutations
-        sample_sequences = xrange(1, n_perm)
+        sample_sequences = range(1, n_perm)
     else:
         # random resampling
-        sample_sequences = random.sample(xrange(1, n_perm), samples)
+        sample_sequences = random.sample(range(1, n_perm), samples)
 
     sign = np.empty(n, np.int8)
     mult = 2 ** np.arange(n, dtype=np.int64)

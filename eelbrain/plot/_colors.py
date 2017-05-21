@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Color tools for plotting."""
-from __future__ import division
 
-from itertools import izip, product
+
+from itertools import product
 import operator
 from warnings import warn
 
@@ -13,6 +13,7 @@ import matplotlib as mpl
 from .. import _colorspaces as cs
 from .._data_obj import Factor, Interaction, cellname
 from ._base import EelFigure, Layout
+from functools import reduce
 
 
 POINT_SIZE = 0.0138889  # 1 point in inches
@@ -42,7 +43,7 @@ def find_cell_colors(x, colors):
                    "colors (%i) for %i "
                    "cells." % (str(colors), len(colors), len(cells)))
             raise ValueError(err)
-        return dict(zip(cells, colors))
+        return dict(list(zip(cells, colors)))
     elif isinstance(colors, dict):
         for cell in x.cells:
             if cell not in colors:
@@ -105,7 +106,7 @@ def colors_for_oneway(cells, hue_start=0.2, light_range=0.5, cmap=None):
     dict : {str: tuple}
         Mapping from cells to colors.
     """
-    if isinstance(hue_start, basestring):
+    if isinstance(hue_start, str):
         warn("The function signature of colors_for_oneway has changed. "
              "Specifying a colormap as second parameter will stop working after "
              "Eelbrain 0.25. Use cmap=%r as keyword argument instead." %
@@ -113,7 +114,7 @@ def colors_for_oneway(cells, hue_start=0.2, light_range=0.5, cmap=None):
         cmap = hue_start
     n = len(cells)
     if cmap is None:
-        return dict(izip(cells, cs.oneway_colors(n, hue_start, light_range)))
+        return dict(zip(cells, cs.oneway_colors(n, hue_start, light_range)))
     else:
         cm = mpl.cm.get_cmap(cmap)
         return {cell: cm(i / n) for i, cell in enumerate(cells)}
@@ -150,7 +151,7 @@ def colors_for_twoway(x1_cells, x2_cells, hue_start=0.2, hue_shift=0.,
         raise ValueError("Need at least 2 cells on each factor")
 
     clist = cs.twoway_colors(n1, n2, hue_start, hue_shift, hues)
-    return dict(izip(product(x1_cells, x2_cells), clist))
+    return dict(zip(product(x1_cells, x2_cells), clist))
 
 
 def colors_for_nway(cell_lists, hue_start=0.2):
@@ -174,7 +175,7 @@ def colors_for_nway(cell_lists, hue_start=0.2):
     elif len(cell_lists) == 2:
         return colors_for_twoway(cell_lists[0], cell_lists[1], hue_start)
     elif len(cell_lists) > 2:
-        ns = map(len, cell_lists)
+        ns = list(map(len, cell_lists))
         n_outer = reduce(operator.mul, ns[:-1])
         n_inner = ns[-1]
 
@@ -192,7 +193,7 @@ def colors_for_nway(cell_lists, hue_start=0.2):
         hues = np.asarray(hues)
         hues %= 1
         colors = cs.twoway_colors(n_outer, n_inner, hues=hues)
-        return dict(izip(product(*cell_lists), colors))
+        return dict(zip(product(*cell_lists), colors))
     else:
         return {}
 
@@ -249,8 +250,8 @@ class ColorGrid(EelFigure):
         n_cols = len(column_cells)
 
         # color patches
-        for col in xrange(n_cols):
-            for row in xrange(n_rows):
+        for col in range(n_cols):
+            for row in range(n_rows):
                 if row_first:
                     cell = (row_cells[row], column_cells[col])
                 else:
@@ -369,7 +370,7 @@ class ColorList(EelFigure):
     def __init__(self, colors, cells=None, labels=None, h='auto', *args,
                  **kwargs):
         if cells is None:
-            cells = colors.keys()
+            cells = list(colors.keys())
 
         if h == 'auto':
             h = len(cells) * mpl.rcParams['font.size'] * POINT_SIZE * LEGEND_SIZE
@@ -418,7 +419,7 @@ class ColorList(EelFigure):
 
 
 class ColorBar(EelFigure):
-    u"""A color-bar for a matplotlib color-map
+    """A color-bar for a matplotlib color-map
 
     Parameters
     ----------

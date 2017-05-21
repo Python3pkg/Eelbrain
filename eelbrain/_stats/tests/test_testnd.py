@@ -1,8 +1,8 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
 
-from itertools import izip, product
-import cPickle as pickle
+
+from itertools import product
+import pickle as pickle
 import logging
 
 from nose.tools import (eq_, assert_equal, assert_not_equal,
@@ -110,7 +110,7 @@ def test_anova():
     # thresholded
     res = testnd.anova('utsnd', 'A*B*rm', ds=ds, pmin=0.05, samples=samples)
     clusters = res.find_clusters()
-    for dist, effect in izip(res._cdist, res.effects):
+    for dist, effect in zip(res._cdist, res.effects):
         effect_idx = clusters.eval("effect == %r" % effect)
         vmax = clusters[effect_idx, 'v'].abs().max()
         eq_(len(dist.dist), samples)
@@ -187,7 +187,7 @@ def test_clusterdist():
     x = np.random.normal(0, 1, shape)
     sensor = Sensor(locs, ['0', '1', '2', '3'])
     sensor.set_connectivity(connect_dist=1.1)
-    dims = ('case', UTS(-0.1, 0.1, 6), Ordered('dim2', range(6), 'unit'),
+    dims = ('case', UTS(-0.1, 0.1, 6), Ordered('dim2', list(range(6)), 'unit'),
             sensor)
     y = NDVar(x, dims)
 
@@ -252,7 +252,7 @@ def test_clusterdist():
     sensor = Sensor(locs, ['0', '1', '2', '3'])
     sensor.set_connectivity(connect_dist=1.1)
     dims = ('case', UTS(-0.1, 0.1, 4), sensor,
-            Ordered('dim2', range(10), 'unit'))
+            Ordered('dim2', list(range(10)), 'unit'))
     y = NDVar(np.random.normal(0, 1, (10, 4, 4, 10)), dims)
     cdist = _ClusterDist(y, 3, None)
     cdist.add_original(y.x[0])
@@ -561,7 +561,7 @@ def test_merged_temporal_cluster_dist():
         merged_dist = _MergedTemporalClusterDist([res1._cdist, res2._cdist])
         if isinstance(res1, testnd.anova):
             assert_equal(len(merged_dist.dist), len(res1.effects))
-            for effect, dist in merged_dist.dist.iteritems():
+            for effect, dist in merged_dist.dist.items():
                 assert_in(effect, res1.effects)
                 assert_equal(len(dist), res1.samples)
         else:

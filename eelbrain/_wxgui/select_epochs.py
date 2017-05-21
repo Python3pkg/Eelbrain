@@ -10,9 +10,9 @@
 #  - listens to Document changes
 #  - issues commands to Model
 
-from __future__ import division
 
-from itertools import izip
+
+
 from logging import getLogger
 import math
 import os
@@ -173,14 +173,14 @@ class Document(FileDocument):
         data = asndvar(data, ds=ds)
         self.n_epochs = n = len(data)
 
-        if not isinstance(accept, basestring):
+        if not isinstance(accept, str):
             raise TypeError("accept needs to be a string")
         if accept not in ds:
             x = np.ones(n, dtype=bool)
             ds[accept] = Var(x)
         accept = ds[accept]
 
-        if not isinstance(tag, basestring):
+        if not isinstance(tag, str):
             raise TypeError("tag needs to be a string")
         if tag in ds:
             tag = ds[tag]
@@ -188,7 +188,7 @@ class Document(FileDocument):
             tag = Factor([''], repeat=n, name=tag)
             ds.add(tag)
 
-        if not isinstance(trigger, basestring):
+        if not isinstance(trigger, str):
             raise TypeError("trigger needs to be a string")
         if trigger in ds:
             trigger = ds[trigger]
@@ -207,7 +207,7 @@ class Document(FileDocument):
             interpolate = Datalist([[]] * ds.n_cases, INTERPOLATE_CHANNELS,
                                    'strlist')
 
-        if isinstance(blink, basestring):
+        if isinstance(blink, str):
             if ds is not None:
                 blink = ds.get(blink, None)
         elif blink is True:
@@ -276,7 +276,7 @@ class Document(FileDocument):
         interpolate = [set(chs) - bad_set for chs in self.interpolate]
 
         if any(interpolate):
-            for epoch, chs in izip(epochs, interpolate):
+            for epoch, chs in zip(epochs, interpolate):
                 if chs:
                     yield epoch.sub(sensor=epoch.sensor.index(exclude=chs))
                 else:
@@ -777,7 +777,7 @@ class Frame(FileFrame):
         elif isinstance(index, slice):
             start = index.start or 0
             stop = index.stop or self.doc.n_epochs
-            index = xrange(start, stop)
+            index = range(start, stop)
         elif index.dtype.kind == 'b':
             index = np.nonzero(index)[0]
 
@@ -1042,8 +1042,8 @@ class Frame(FileFrame):
         while True:
             if dlg.ShowModal() == wx.ID_OK:
                 try:
-                    names_in = filter(None, (s.strip() for s in
-                                             dlg.GetValue().split(',')))
+                    names_in = [_f for _f in (s.strip() for s in
+                                             dlg.GetValue().split(',')) if _f]
                     names = self.doc.epochs.sensor._normalize_sensor_names(names_in)
                     break
                 except ValueError as exception:
@@ -1067,7 +1067,7 @@ class Frame(FileFrame):
         while True:
             if dlg.ShowModal() == wx.ID_OK:
                 try:
-                    names = filter(None, (s.strip() for s in dlg.GetValue().split(',')))
+                    names = [_f for _f in (s.strip() for s in dlg.GetValue().split(',')) if _f]
                     new = self.doc.epochs.sensor._normalize_sensor_names(names)
                     break
                 except ValueError as exception:
@@ -1095,8 +1095,8 @@ class Frame(FileFrame):
         while True:
             if dlg.ShowModal() == wx.ID_OK:
                 try:
-                    names_in = filter(None, (s.strip() for s in
-                                             dlg.GetValue().split(',')))
+                    names_in = [_f for _f in (s.strip() for s in
+                                             dlg.GetValue().split(',')) if _f]
                     names = self.doc.epochs.sensor._normalize_sensor_names(names_in)
                     break
                 except ValueError as exception:
@@ -1111,7 +1111,7 @@ class Frame(FileFrame):
         self.SetPlotStyle(mark=names)
 
     def OnSetVLim(self, event):
-        default = str(self._vlims.values()[0][1])
+        default = str(list(self._vlims.values())[0][1])
         dlg = wx.TextEntryDialog(self, "New Y-axis limit:", "Set Y-Axis Limit",
                                  default)
 
@@ -1267,14 +1267,14 @@ class Frame(FileFrame):
 
         # get a list of IDS for each page
         self._segs_by_page = []
-        for i in xrange(n_pages):
+        for i in range(n_pages):
             start = i * n_per_page
             stop = min((i + 1) * n_per_page, n)
-            self._segs_by_page.append(range(start, stop))
+            self._segs_by_page.append(list(range(start, stop)))
 
         # update page selector
         pages = []
-        for i in xrange(n_pages):
+        for i in range(n_pages):
             istart = self._segs_by_page[i][0]
             if i == n_pages - 1:
                 pages.append('%i: %i..%i' % (i, istart, self.doc.n_epochs))
@@ -1306,7 +1306,7 @@ class Frame(FileFrame):
 
     def _SetPlotStyle(self, **kwargs):
         "See .SetPlotStyle()"
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key == 'vlims':
                 err = ("%r is an invalid keyword argument for this function"
                        % key)
@@ -1372,7 +1372,7 @@ class Frame(FileFrame):
 
         # hide lines axes without data
         if len(self._epoch_idxs) < len(self._case_axes):
-            for i in xrange(len(self._epoch_idxs), len(self._case_plots)):
+            for i in range(len(self._epoch_idxs), len(self._case_plots)):
                 self._case_plots[i].set_visible(False)
                 self._case_axes[i].epoch_idx = OUT_OF_RANGE
 

@@ -2,7 +2,7 @@
 """Plot sensor maps."""
 
 from collections import Sequence
-from itertools import izip
+
 from math import sin, cos, asin
 import os
 
@@ -230,7 +230,7 @@ class _plt_map2d:
         if text == 'none':
             return
         elif text == 'index':
-            labels = map(str, xrange(len(self.sensors)))
+            labels = list(map(str, range(len(self.sensors))))
         elif text == 'name':
             labels = self.sensors.names
             prefix = os.path.commonprefix(labels)
@@ -247,7 +247,7 @@ class _plt_map2d:
             locs = locs[self._index]
 
         locs = locs + [[xpos, ypos]]
-        for (x, y), txt in izip(locs, labels):
+        for (x, y), txt in zip(locs, labels):
             h = self.ax.text(x, y, txt, ha=ha, va=va, **text_kwargs)
             self._label_h.append(h)
 
@@ -265,7 +265,7 @@ class _plt_map2d:
             label_order = np.argsort(locs[:, 0] ** 2)
 
         n_labels = len(label_order)
-        for i in xrange(1, n_labels):
+        for i in range(1, n_labels):
             i_i = label_order[i]
             i_loc = locs[i_i, 0]
             if i_loc == center:
@@ -276,7 +276,7 @@ class _plt_map2d:
             side = -1 if i_loc < center else 1
 
             dx = 0
-            for j in xrange(i):
+            for j in range(i):
                 j_i = label_order[j]
                 j_bbox = self._label_h[j_i].get_window_extent()
                 if padded_bbox.overlaps(j_bbox):
@@ -350,7 +350,7 @@ class SensorMapMixin:
         if dlg.ShowModal() != wx.ID_OK:
             return
 
-        chs = filter(None, map(unicode.strip, dlg.GetValue().split(',')))
+        chs = [_f for _f in map(str.strip, dlg.GetValue().split(',')) if _f]
         try:
             self.mark_sensors(chs)
         except Exception as exc:

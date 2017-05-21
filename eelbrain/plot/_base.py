@@ -57,11 +57,11 @@ functions executed are:
 #. ------> _plt_(p(A, B))
 
 """
-from __future__ import division
+
 import __main__
 
 from collections import Iterable, Iterator
-from itertools import chain, izip
+from itertools import chain
 from logging import getLogger
 import math
 import os
@@ -185,20 +185,20 @@ def configure(frame=None, autorun=None, show=None, format=None,
     backend.update(new)
 
 
-meas_display_unit = {'time': u'ms',
-                     'V': u'µV',
-                     'B': u'fT',
+meas_display_unit = {'time': 'ms',
+                     'V': 'µV',
+                     'B': 'fT',
                      'sensor': int}
-unit_format = {u'V': 1,
-               u'ms': 1e3,
-               u'mV': 1e3,
-               u'µV': 1e6,
-               u'pT': 1e12,
-               u'fT': 1e15,
-               u'dSPM': 1,
-               u'p': 1,
-               u'T': 1,
-               u'n': int,  # %i format
+unit_format = {'V': 1,
+               'ms': 1e3,
+               'mV': 1e3,
+               'µV': 1e6,
+               'pT': 1e12,
+               'fT': 1e15,
+               'dSPM': 1,
+               'p': 1,
+               'T': 1,
+               'n': int,  # %i format
                int: int}
 scale_formatters = {1: FuncFormatter(lambda x, pos: '%g' % x),
                     1e3: FuncFormatter(lambda x, pos: '%g' % (1e3 * x)),
@@ -226,7 +226,7 @@ def find_axis_params_data(v, label):
     label : str | None
         Axis label.
     """
-    if isinstance(v, basestring):
+    if isinstance(v, str):
         if v in unit_format:
             scale = unit_format[v]
             unit = v
@@ -466,7 +466,7 @@ def find_fig_cmaps(epochs, cmap=None, alpha=False):
         else:
             out[meas] = None
 
-    for k in out.keys():
+    for k in list(out.keys()):
         if out[k] is None:
             out[k] = DEFAULT_CMAPS.get(meas, 'xpolar')
         # replace with cmap with alpha
@@ -611,7 +611,7 @@ def find_fig_vlims(plots, vmax=None, vmin=None, cmaps=None):
 
     # fix vlims based on cmaps
     if cmaps is not None:
-        for meas in vlims.keys():
+        for meas in list(vlims.keys()):
             vmin, vmax = vlims[meas]
             vlims[meas] = fix_vlim_for_cmap(vmin, vmax, cmaps[meas])
 
@@ -781,7 +781,7 @@ def unpack_epochs_arg(y, dims, xax=None, ds=None, plot_name=None, sub=None):
                     raise ValueError(
                         "Got xax='.case', but y does not have case dimension: "
                         "y=%r" % (y,))
-                values = range(len(y))
+                values = list(range(len(y)))
                 unit = ''
             else:
                 dim = y.get_dim(dimname)
@@ -858,14 +858,14 @@ class mpl_figure:
 
 def _loc(name, size=(0, 0), title_space=0, frame=.01):
     """Convert loc argument to ``(x, y)`` of bottom left edge"""
-    if isinstance(name, basestring):
+    if isinstance(name, str):
         y, x = name.split()
     # interpret x
     elif len(name) == 2:
         x, y = name
     else:
         raise NotImplementedError("loc needs to be string or len=2 tuple/list")
-    if isinstance(x, basestring):
+    if isinstance(x, str):
         if x == 'left':
             x = frame
         elif x in ['middle', 'center', 'centre']:
@@ -875,7 +875,7 @@ def _loc(name, size=(0, 0), title_space=0, frame=.01):
         else:
             raise ValueError(x)
     # interpret y
-    if isinstance(y, basestring):
+    if isinstance(y, str):
         if y in ['top', 'upper']:
             y = 1 - frame - title_space - size[1]
         elif y in ['middle', 'center', 'centre']:
@@ -1046,7 +1046,7 @@ class EelFigure(object):
 
         if axtitle is True and naxes == 1:
             return
-        elif axtitle is True or isinstance(axtitle, basestring):
+        elif axtitle is True or isinstance(axtitle, str):
             if names is None:
                 names = []
                 for layers in epochs:
@@ -1073,7 +1073,7 @@ class EelFigure(object):
         if isinstance(axes, int):
             return axtitle
 
-        for title, ax in izip(axtitle, axes):
+        for title, ax in zip(axtitle, axes):
             ax.set_title(title)
 
     def _show(self):
@@ -1551,7 +1551,7 @@ class Layout(BaseLayout):
             return []
         axes = []
         kwargs = {}
-        for i in xrange(1, self.nax + 1):
+        for i in range(1, self.nax + 1):
             ax = figure.add_subplot(self.nrow, self.ncol, i, **kwargs)
             axes.append(ax)
             if self.share_axes:
@@ -1580,7 +1580,7 @@ class ImLayout(Layout):
 
     def make_axes(self, figure):
         axes = []
-        for i in xrange(1, self.nax + 1):
+        for i in range(1, self.nax + 1):
             ax = figure.add_subplot(self.nrow, self.ncol, i)
             ax.axis('off')
             axes.append(ax)
@@ -1647,8 +1647,8 @@ class VariableAspectLayout(BaseLayout):
         fixed = sum(axw for axw in axws if axw is not None)
         w_free = (w - fixed - left_buffer) / self.n_flexible
         widths = [w_free if axw is None else axw for axw in axws]
-        lefts = (sum(widths[:i]) + left_buffer for i in xrange(len(widths)))
-        bottoms = (i * axh + bottom_buffer for i in xrange(self.nrow - 1, -1, -1))
+        lefts = (sum(widths[:i]) + left_buffer for i in range(len(widths)))
+        bottoms = (i * axh + bottom_buffer for i in range(self.nrow - 1, -1, -1))
 
         # convert to figure coords
         height = axh / h
@@ -1657,7 +1657,7 @@ class VariableAspectLayout(BaseLayout):
         bottoms_ = (b / h for b in bottoms)
 
         # rectangles:  (left, bottom, width, height)
-        rects = (((l, bottom, w, height) for l, w in izip(lefts_, widths_)) for
+        rects = (((l, bottom, w, height) for l, w in zip(lefts_, widths_)) for
                  bottom in bottoms_)
         return rects
 
@@ -1665,7 +1665,7 @@ class VariableAspectLayout(BaseLayout):
         axes = []
         rects = self.ax_rects(self.h, self.w)
         for row, row_rects in enumerate(rects):
-            for rect, kwa, frame in izip(row_rects, self.ax_kwargs, self.ax_frames):
+            for rect, kwa, frame in zip(row_rects, self.ax_kwargs, self.ax_frames):
                 ax = figure.add_axes(rect, **kwa)
                 self._format_axes(ax, frame, True)
                 axes.append(ax)
@@ -1992,7 +1992,7 @@ class TopoMapKey(object):
 
 
 class XAxisMixin(object):
-    u"""Manage x-axis
+    """Manage x-axis
 
     Parameters
     ----------
@@ -2046,7 +2046,7 @@ class XAxisMixin(object):
         if n_steps > 1:
             vmin_d = vmin_dst - vmin
             vmax_d = vmax_dst - vmax
-            for i in xrange(1, n_steps):
+            for i in range(1, n_steps):
                 x = i / n_steps
                 self.set_xlim(vmin + x * vmin_d, vmax + x * vmax_d)
         self.set_xlim(vmin_dst, vmax_dst)
@@ -2120,7 +2120,7 @@ class XAxisMixin(object):
 
 
 class YLimMixin(object):
-    u"""Manage y-axis
+    """Manage y-axis
 
     Parameters
     ----------
@@ -2185,7 +2185,7 @@ class YLimMixin(object):
         if n_steps <= 1:
             self.set_ylim(vmin + vmin_d, vmax + vmax_d)
         else:
-            for i in xrange(1, n_steps + 1):
+            for i in range(1, n_steps + 1):
                 x = i / n_steps
                 self.set_ylim(vmin + x * vmin_d, vmax + x * vmax_d)
 
@@ -2307,9 +2307,9 @@ class ImageTiler(object):
         images = []
         colw = [0] * self.ncol
         rowh = [0] * self.nrow
-        for r in xrange(self.nrow):
+        for r in range(self.nrow):
             row = []
-            for c in xrange(self.ncol):
+            for c in range(self.ncol):
                 fname = self.get_tile_fname(c, r, t)
                 if os.path.exists(fname):
                     im = PIL.Image.open(fname)
@@ -2332,7 +2332,7 @@ class ImageTiler(object):
         out.save(dest)
 
     def make_frames(self):
-        for t in xrange(self.nt):
+        for t in range(self.nt):
             self.make_frame(t=t)
 
     def make_movie(self, dest, framerate=10, codec='mpeg4'):

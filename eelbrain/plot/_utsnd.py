@@ -2,9 +2,9 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Plot multidimensional uniform time series."""
 
-from __future__ import division
 
-from itertools import izip
+
+
 
 import numpy as np
 
@@ -180,7 +180,7 @@ class _ax_im_array(object):
 
 
 class Array(ColorMapMixin, XAxisMixin, EelFigure):
-    u"""Plot UTS data to a rectangular grid.
+    """Plot UTS data to a rectangular grid.
 
     Parameters
     ----------
@@ -246,7 +246,7 @@ class Array(ColorMapMixin, XAxisMixin, EelFigure):
         self._set_axtitle(axtitle, epochs)
 
         self.plots = []
-        for i, ax, layers in zip(xrange(nax), self._axes, epochs):
+        for i, ax, layers in zip(range(nax), self._axes, epochs):
             p = _ax_im_array(ax, layers, x, interpolation, self._vlims,
                              self._cmaps, self._contours)
             self.plots.append(p)
@@ -291,8 +291,8 @@ class _plt_utsnd(object):
         self.epoch = epoch
         self._sensors = sensors
         # FIXME:  implement actual Case dimension that supports iteration etc.
-        labels = range(len(epoch)) if linedim == 'case' else epoch.get_dim(linedim)
-        self.legend_handles = {name: line for name, line in izip(labels, self.lines)}
+        labels = list(range(len(epoch))) if linedim == 'case' else epoch.get_dim(linedim)
+        self.legend_handles = {name: line for name, line in zip(labels, self.lines)}
 
     def remove(self):
         while self.lines:
@@ -305,7 +305,7 @@ class _plt_utsnd(object):
     def set_ydata(self, epoch):
         if self._sensors:
             epoch = epoch.sub(sensor=self._sensors)
-        for line, y in izip(self.lines, epoch.get_data(self._dims)):
+        for line, y in zip(self.lines, epoch.get_data(self._dims)):
             line.set_ydata(y)
 
 
@@ -363,7 +363,7 @@ class _ax_butterfly(object):
 
 
 class Butterfly(LegendMixin, TopoMapKey, YLimMixin, XAxisMixin, EelFigure):
-    u"""Butterfly plot for NDVars
+    """Butterfly plot for NDVars
 
     Parameters
     ----------

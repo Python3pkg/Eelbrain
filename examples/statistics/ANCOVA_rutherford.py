@@ -28,7 +28,7 @@ cov = Var([9, 5, 6, 4, 6, 8, 3, 5,
 
 A = Factor([1, 2, 3], repeat=8, name='A')
 
-print test.anova(Y, A + cov)
-print test.anova(Y, cov * A)
+print(test.anova(Y, A + cov))
+print(test.anova(Y, cov * A))
 plot.Regression(Y, cov)
 plot.Regression(Y, cov, A)

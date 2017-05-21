@@ -5,7 +5,7 @@ import wx
 
 def filename_repr(filenames):
     if filenames:
-        if isinstance(filenames, basestring):
+        if isinstance(filenames, str):
             filenames = [filenames]
         
 #        if 'wxMSW' in wx.PlatformInfo:
@@ -25,7 +25,7 @@ def filename_repr(filenames):
 #        
 #        else:
         try:
-            filenames = map(str, filenames)
+            filenames = list(map(str, filenames))
         except:
             pass
         

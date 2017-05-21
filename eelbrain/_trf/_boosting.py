@@ -11,9 +11,9 @@ x2 = ds['x2']
 %prun -s cumulative res = boosting(y, x1, 0, 1)
 
 """
-from __future__ import division
+
 from inspect import getargspec
-from itertools import chain, izip, product
+from itertools import chain, product
 from math import floor
 from multiprocessing import Process, Queue, cpu_count
 from multiprocessing.sharedctypes import RawArray
@@ -118,7 +118,7 @@ class BoostingResult(object):
         self.__init__(**state)
 
     def __repr__(self):
-        if self.x is None or isinstance(self.x, basestring):
+        if self.x is None or isinstance(self.x, str):
             x = self.x
         else:
             x = ' + '.join(map(str, self.x))
@@ -126,7 +126,7 @@ class BoostingResult(object):
                  '%g - %g' % (self.tstart, self.tstop)]
         argspec = getargspec(boosting)
         names = argspec.args[-len(argspec.defaults):]
-        for name, default in izip(names, argspec.defaults):
+        for name, default in zip(names, argspec.defaults):
             value = getattr(self, name)
             if value != default:
                 items.append('%s=%r' % (name, value))
@@ -140,7 +140,7 @@ class BoostingResult(object):
             return self.h * (self.y_scale / self.x_scale)
         else:
             return tuple(h * (self.y_scale / sx) for h, sx in
-                         izip(self.h, self.x_scale))
+                         zip(self.h, self.x_scale))
 
 
 def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
@@ -202,10 +202,10 @@ def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
     if scale_data:
         data_mean = tuple(d.mean('time') for d in data)
         if isinstance(scale_data, int):
-            data = tuple(d - d_mean for d, d_mean in izip(data, data_mean))
+            data = tuple(d - d_mean for d, d_mean in zip(data, data_mean))
         elif isinstance(scale_data, str):
             if scale_data == 'inplace':
-                for d, d_mean in izip(data, data_mean):
+                for d, d_mean in zip(data, data_mean):
                     d -= d_mean
             else:
                 raise ValueError("scale_data=%r" % scale_data)
@@ -226,7 +226,7 @@ def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
             raise ValueError("Can not scale %s because it has 0 variance" %
                              dataobj_repr(data[zero_var.index(True)]))
 
-        for d, d_scale in izip(data, data_scale):
+        for d, d_scale in zip(data, data_scale):
             d /= d_scale
         y = data[0]
         x = data[1:]
@@ -306,7 +306,7 @@ def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
 
         # collect results
         h_segs = {}
-        for _ in xrange(n_y * N_SEGS):
+        for _ in range(n_y * N_SEGS):
             y_i, seg_i, h = result_queue.get()
             pbar.update()
             if y_i in h_segs:
@@ -314,7 +314,7 @@ def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
                 h_seg[seg_i] = h
                 if len(h_seg) == N_SEGS:
                     del h_segs[y_i]
-                    hs = [h for h in (h_seg[i] for i in xrange(N_SEGS)) if
+                    hs = [h for h in (h_seg[i] for i in range(N_SEGS)) if
                           h is not None]
                     if hs:
                         h = np.mean(hs, 0, out=h_x[y_i])
@@ -327,7 +327,7 @@ def boosting(y, x, tstart, tstop, scale_data=True, delta=0.005, mindelta=None,
     else:
         for y_i, y_ in enumerate(y_data):
             hs = []
-            for i in xrange(N_SEGS):
+            for i in range(N_SEGS):
                 h = boost_1seg(x_data, y_, trf_length, delta, N_SEGS, i,
                                mindelta_, error)
                 if h is not None:
@@ -483,7 +483,7 @@ def boost_segs(y_train, y_test, x_train, x_test, trf_length, delta, mindelta,
     if any(len(x) != n_stims for x in chain(x_train, x_test)):
         raise ValueError("Not all x have same number of stimuli")
     n_times = [len(y) for y in chain(y_train, y_test)]
-    if any(x.shape[1] != n for x, n in izip(chain(x_train, x_test), n_times)):
+    if any(x.shape[1] != n for x, n in zip(chain(x_train, x_test), n_times)):
         raise ValueError("y and x have inconsistent number of time points")
 
     h = np.zeros((n_stims, trf_length))
@@ -502,10 +502,10 @@ def boost_segs(y_train, y_test, x_train, x_test, trf_length, delta, mindelta,
     history = []
     test_error_history = []
     # pre-assign iterators
-    iter_h = tuple(product(xrange(h.shape[0]), xrange(h.shape[1])))
-    iter_train_error = zip(y_train_error, x_train)
-    iter_error = zip(ys_error, xs)
-    for i_boost in xrange(999999):
+    iter_h = tuple(product(range(h.shape[0]), range(h.shape[1])))
+    iter_train_error = list(zip(y_train_error, x_train))
+    iter_error = list(zip(ys_error, xs))
+    for i_boost in range(999999):
         history.append(h.copy())
 
         # evaluate current h
@@ -593,7 +593,7 @@ def setup_workers(y, x, trf_length, delta, mindelta, nsegs, error):
 
     args = (y_buffer, x_buffer, n_y, n_times, n_x, trf_length, delta,
             mindelta, nsegs, error, job_queue, result_queue)
-    for _ in xrange(N_WORKERS):
+    for _ in range(N_WORKERS):
         Process(target=boosting_worker, args=args).start()
 
     return job_queue, result_queue
@@ -615,9 +615,9 @@ def boosting_worker(y_buffer, x_buffer, n_y, n_times, n_x, trf_length,
 
 def put_jobs(queue, n_y, n_segs):
     "Feed boosting jobs into a Queue"
-    for job in product(xrange(n_y), xrange(n_segs)):
+    for job in product(range(n_y), range(n_segs)):
         queue.put(job)
-    for _ in xrange(N_WORKERS):
+    for _ in range(N_WORKERS):
         queue.put((JOB_TERMINATE, None))
 
 
@@ -632,7 +632,7 @@ def apply_kernel(x, h, out=None):
     else:
         out.fill(0)
 
-    for ind in xrange(len(h)):
+    for ind in range(len(h)):
         out += np.convolve(h[ind], x[ind])[:len(out)]
 
     return out

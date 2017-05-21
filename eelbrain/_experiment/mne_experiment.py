@@ -1,9 +1,9 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
+
 
 from collections import defaultdict, Sequence
 import inspect
-from itertools import chain, izip, product
+from itertools import chain, product
 import logging
 import os
 from os.path import exists, getmtime, isdir, join, relpath
@@ -156,7 +156,7 @@ class Epoch(object):
             baseline = (typed_arg(baseline[0], float),
                         typed_arg(baseline[1], float))
 
-        if not isinstance(trigger_shift, (float, basestring)):
+        if not isinstance(trigger_shift, (float, str)):
             raise TypeError("trigger_shift needs to be float or str, got %s" %
                             repr(trigger_shift))
 
@@ -176,7 +176,7 @@ class Epoch(object):
 
     def as_dict_24(self):
         "Dict to be compared with Eelbrain 0.24 cache"
-        out = {k: v for k, v in self.as_dict().items() if v is not None}
+        out = {k: v for k, v in list(self.as_dict().items()) if v is not None}
         if isinstance(self, (SecondaryEpoch, SuperEpoch)):
             out['_rej_file_epochs'] = self.rej_file_epochs
         if isinstance(self, PrimaryEpoch) and self.n_cases:
@@ -346,10 +346,10 @@ class CacheDict(dict):
         if key in self:
             return dict.__getitem__(self, key)
 
-        if isinstance(key, basestring):
+        if isinstance(key, str):
             out = self._func(*self._args, **{self._key_vars: key})
         else:
-            out = self._func(*self._args, **dict(zip(self._key_vars, key)))
+            out = self._func(*self._args, **dict(list(zip(self._key_vars, key))))
 
         self[key] = out
         return out
@@ -733,7 +733,7 @@ class MneExperiment(FileTree):
                             "`R0026_mysession-raw.fif` your session name is "
                             "'mysession' and you should set "
                             "MneExperiment.sessions='mysession'.")
-        elif isinstance(self.sessions, basestring):
+        elif isinstance(self.sessions, str):
             self._sessions = (self.sessions,)
         elif isinstance(self.sessions, Sequence):
             self._sessions = tuple(self.sessions)
@@ -769,7 +769,7 @@ class MneExperiment(FileTree):
         group_definitions = self.groups.copy()
         while group_definitions:
             n_def = len(group_definitions)
-            for name, group_def in group_definitions.items():
+            for name, group_def in list(group_definitions.items()):
                 if name == '*':
                     raise ValueError("'*' is not a valid group name")
                 elif isinstance(group_def, dict):
@@ -777,7 +777,7 @@ class MneExperiment(FileTree):
                     if base not in groups:
                         continue
                     exclude = group_def['exclude']
-                    if isinstance(exclude, basestring):
+                    if isinstance(exclude, str):
                         exclude = (exclude,)
                     elif not isinstance(exclude, (tuple, list, set)):
                         raise TypeError("Exclusion must be defined as str | "
@@ -810,11 +810,11 @@ class MneExperiment(FileTree):
         ########################################################################
         # variables
         self.variables = self.variables.copy()
-        for k, v in self.variables.iteritems():
+        for k, v in self.variables.items():
             assert_is_legal_dataset_key(k)
             triggers = []
-            for trigger, name in v.iteritems():
-                if not isinstance(name, basestring):
+            for trigger, name in v.items():
+                if not isinstance(name, str):
                     raise TypeError("Invalid cell name in variable "
                                     "definition: %s" % repr(name))
 
@@ -836,7 +836,7 @@ class MneExperiment(FileTree):
         epochs = {}
         secondary_epochs = []
         super_epochs = []
-        for name, parameters in self.epochs.iteritems():
+        for name, parameters in self.epochs.items():
             # filter out secondary epochs
             if 'sub_epochs' in parameters:
                 super_epochs.append((name, parameters.copy()))
@@ -850,7 +850,7 @@ class MneExperiment(FileTree):
         # integrate secondary epochs (epochs with base parameter)
         while secondary_epochs:
             n_secondary_epochs = len(secondary_epochs)
-            for i in xrange(n_secondary_epochs - 1, -1, -1):
+            for i in range(n_secondary_epochs - 1, -1, -1):
                 name, parameters = secondary_epochs[i]
                 if parameters['base'] in epochs:
                     parameters['base'] = epochs[parameters['base']]
@@ -878,8 +878,8 @@ class MneExperiment(FileTree):
         ########################################################################
         # store epoch rejection settings
         artifact_rejection = {}
-        for name, params in chain(self._artifact_rejection.iteritems(),
-                                  self.artifact_rejection.iteritems()):
+        for name, params in chain(iter(self._artifact_rejection.items()),
+                                  iter(self.artifact_rejection.items())):
             if params['kind'] not in ('manual', 'make', 'ica', None):
                 raise ValueError("Invalid value in %r rejection setting: "
                                  "kind=%r" % (name, params['kind']))
@@ -901,7 +901,7 @@ class MneExperiment(FileTree):
         ########################################################################
         # Cov
         #####
-        for k, params in self._covs.iteritems():
+        for k, params in self._covs.items():
             params = set(params)
             n_datasource = ('epoch' in params) + ('session' in params)
             if n_datasource != 1:
@@ -934,7 +934,7 @@ class MneExperiment(FileTree):
                            "builtin parcellations: %s" % ', '.join(illegal))
 
         parcs = {}
-        for name, p in chain(self.__parcs.iteritems(), user_parcs.iteritems()):
+        for name, p in chain(iter(self.__parcs.items()), iter(user_parcs.items())):
             if p == FS_PARC:
                 parcs[name] = FreeSurferParcellation(name)
             elif p == FSA_PARC:
@@ -957,13 +957,13 @@ class MneExperiment(FileTree):
                 raise ValueError("Parcellations need to be defined as %r, %r or "
                                  "dict, got %s: %r" % (FS_PARC, FSA_PARC, name, p))
         self._parcs = parcs
-        parc_values = parcs.keys()
+        parc_values = list(parcs.keys())
         parc_values += ['']
 
         ########################################################################
         # frequency
         freqs = {}
-        for name, f in chain(self._freqs.iteritems(), self.freqs.iteritems()):
+        for name, f in chain(iter(self._freqs.items()), iter(self.freqs.items())):
             if name in freqs:
                 raise ValueError("Frequency %s defined twice" % name)
             elif 'frequencies' not in f:
@@ -977,7 +977,7 @@ class MneExperiment(FileTree):
         ########################################################################
         # tests
         tests = {}
-        for test, params in self.tests.iteritems():
+        for test, params in self.tests.items():
             if not isinstance(params, dict):
                 raise TypeError("Tests must be specified as dictionary, "
                                 "got %r: %s" % (test, repr(params)))
@@ -1028,11 +1028,11 @@ class MneExperiment(FileTree):
         ########################
         self._register_field('mri', sorted(self._mri_subjects))
         self._register_field('subject', subjects or None)
-        self._register_field('group', self._groups.keys(), 'all',
+        self._register_field('group', list(self._groups.keys()), 'all',
                              post_set_handler=self._post_set_group)
 
         self._register_field('raw', sorted(self._raw))
-        self._register_field('rej', self._artifact_rejection.keys(), 'man')
+        self._register_field('rej', list(self._artifact_rejection.keys()), 'man')
 
         # epoch
         epoch_keys = sorted(self._epochs)
@@ -1058,11 +1058,11 @@ class MneExperiment(FileTree):
                              post_set_handler=self._post_set_test)
         self._register_field('parc', parc_values, 'aparc',
                              eval_handler=self._eval_parc)
-        self._register_field('freq', self._freqs.keys())
+        self._register_field('freq', list(self._freqs.keys()))
         self._register_field('src', ('ico-2', 'ico-3', 'ico-4', 'ico-5',
                                      'vol-10', 'vol-7', 'vol-5'), 'ico-4')
         self._register_field('connectivity', ('', 'link-midline'))
-        self._register_field('select_clusters', self._cluster_criteria.keys())
+        self._register_field('select_clusters', list(self._cluster_criteria.keys()))
 
         # slave fields
         self._register_field('mrisubject', depends_on=('mri', 'subject'),
@@ -1189,7 +1189,7 @@ class MneExperiment(FileTree):
         #    hence marker positions need to be the same between sub-epochs
             if subjects_with_dig_changes:
                 log.info("Raw input files changed, checking digitizer data")
-                super_epochs = tuple(epoch for epoch in self._epochs.values() if
+                super_epochs = tuple(epoch for epoch in list(self._epochs.values()) if
                                      isinstance(epoch, SuperEpoch))
             for subject in subjects_with_dig_changes:
                 self.set(subject)
@@ -1204,7 +1204,7 @@ class MneExperiment(FileTree):
                     if dig is None:
                         continue  # assume that it is not used or the same
 
-                    for session_, dig_ in digs.iteritems():
+                    for session_, dig_ in digs.items():
                         if not hsp_equal(dig, dig_):
                             raise NotImplementedError(
                                 "Subject %s has different head shape data "
@@ -1236,8 +1236,8 @@ class MneExperiment(FileTree):
         # =====================================
         cache_state_path = self.get('cache-state-file')
         raw_state = pipeline_dict(self._raw)
-        epoch_state = {k: v.as_dict() for k, v in self._epochs.iteritems()}
-        parcs_state = {k: v.as_dict() for k, v in self._parcs.iteritems()}
+        epoch_state = {k: v.as_dict() for k, v in self._epochs.items()}
+        parcs_state = {k: v.as_dict() for k, v in self._parcs.items()}
         if exists(cache_state_path):
             # check time stamp
             if getmtime(cache_state_path) > time.time():
@@ -1264,8 +1264,8 @@ class MneExperiment(FileTree):
             if cache_state_v >= 3:
                 epoch_state_v = epoch_state
             else:
-                epoch_state_v = {k: v.as_dict_24() for k, v in self._epochs.iteritems()}
-                for e in cache_state['epochs'].values():
+                epoch_state_v = {k: v.as_dict_24() for k, v in self._epochs.items()}
+                for e in list(cache_state['epochs'].values()):
                     e.pop('base', None)
                     if 'sel_epoch' in e:
                         e.pop('n_cases', None)
@@ -1274,7 +1274,7 @@ class MneExperiment(FileTree):
             if cache_state_v < 4:
                 session = self._sessions[0]
                 cache_events = {(subject, session): v for subject, v in
-                                cache_state['events'].iteritems()}
+                                cache_state['events'].items()}
             else:
                 cache_events = cache_state['events']
 
@@ -1288,7 +1288,7 @@ class MneExperiment(FileTree):
             # parcellations represented as dicts
             cache_parcs = cache_state['parcs']
             if cache_state_v < 6:
-                for params in cache_parcs.itervalues():
+                for params in cache_parcs.values():
                     for key in ('morph_from_fsaverage', 'make'):
                         if key in params:
                             del params[key]
@@ -1307,7 +1307,7 @@ class MneExperiment(FileTree):
             # check events
             # 'events' -> number or timing og triggers (includes trigger_shift)
             # 'variables' -> only variable change
-            for key, old_events in cache_events.iteritems():
+            for key, old_events in cache_events.items():
                 new_events = events.get(key)
                 if new_events is None:
                     invalid_cache['events'].add(key)
@@ -1342,7 +1342,7 @@ class MneExperiment(FileTree):
                                       '/'.join(key), np.sum(new != old))
 
             # groups
-            for group, members in cache_state['groups'].iteritems():
+            for group, members in cache_state['groups'].items():
                 if group not in self._groups or members != self._groups[group]:
                     invalid_cache['groups'].add(group)
                     log.debug("  group: %s" % group)
@@ -1352,7 +1352,7 @@ class MneExperiment(FileTree):
             if changed:
                 invalid_cache['raw'].update(changed)
                 log.debug("  raw: %s" % ', '.join(changed))
-            for raw, status in changed_ica.iteritems():
+            for raw, status in changed_ica.items():
                 filenames = self.glob('raw-ica-file', raw=raw, subject='*')
                 if filenames:
                     print("Outdated ICA files:\n" + '\n'.join(
@@ -1360,12 +1360,12 @@ class MneExperiment(FileTree):
                     ask_to_delete_ica_files(raw, status, filenames)
 
             # epochs
-            for epoch, params in cache_state['epochs'].iteritems():
+            for epoch, params in cache_state['epochs'].items():
                 if epoch not in epoch_state_v or params != epoch_state_v[epoch]:
                     invalid_cache['epochs'].add(epoch)
 
             # parcs
-            for parc, params in cache_parcs.iteritems():
+            for parc, params in cache_parcs.items():
                 if parc not in parcs_state:
                     invalid_cache['parcs'].add(parc)
                 elif params != parcs_state[parc]:
@@ -1379,7 +1379,7 @@ class MneExperiment(FileTree):
                         invalid_cache['parcs'].add(parc)
 
             # tests
-            for test, params in cache_state['tests'].iteritems():
+            for test, params in cache_state['tests'].items():
                 if test not in self._tests or params != self._tests[test]:
                     invalid_cache['tests'].add(test)
                     if test in self._tests:
@@ -1395,7 +1395,7 @@ class MneExperiment(FileTree):
                            cache_state_v)
             if invalid_cache:
                 msg.append("Experiment definition changed:")
-                for kind, values in invalid_cache.iteritems():
+                for kind, values in invalid_cache.items():
                     msg.append("  %s: %s" % (kind, ', '.join(map(str, values))))
 
             # Secondary  invalidations
@@ -1403,7 +1403,7 @@ class MneExperiment(FileTree):
             # changed events -> group result involving those subjects is also bad
             if 'events' in invalid_cache:
                 subjects = {subject for subject, _ in invalid_cache['events']}
-                for group, members in cache_state['groups'].iteritems():
+                for group, members in cache_state['groups'].items():
                     if subjects.intersection(members):
                         invalid_cache['groups'].add(group)
 
@@ -1411,7 +1411,7 @@ class MneExperiment(FileTree):
             if 'variables' in invalid_cache:
                 bad_vars = invalid_cache['variables']
                 # tests using bad variable
-                for test, params in cache_state['tests'].iteritems():
+                for test, params in cache_state['tests'].items():
                     if test not in invalid_cache['tests']:
                         bad = bad_vars.intersection(find_test_vars(params))
                         if bad:
@@ -1420,7 +1420,7 @@ class MneExperiment(FileTree):
                                       "%s", test, ', '.join(bad))
                 # epochs using bad variable
                 epochs_vars = find_epochs_vars(cache_state['epochs'])
-                for epoch, evars in epochs_vars.iteritems():
+                for epoch, evars in epochs_vars.items():
                     bad = bad_vars.intersection(evars)
                     if bad:
                         invalid_cache['epochs'].add(epoch)
@@ -1440,7 +1440,7 @@ class MneExperiment(FileTree):
                 # version
                 if cache_state_v < 2:
                     bad_parcs = []
-                    for parc, params in self._parcs.iteritems():
+                    for parc, params in self._parcs.items():
                         if params['kind'] == 'seeded':
                             bad_parcs.append(parc + '-?')
                             bad_parcs.append(parc + '-??')
@@ -1448,7 +1448,7 @@ class MneExperiment(FileTree):
                         else:
                             bad_parcs.append(parc)
                     bad_tests = []
-                    for test, params in self._tests.iteritems():
+                    for test, params in self._tests.items():
                         if params['kind'] == 'anova' and params['x'].count('*') > 1:
                             bad_tests.append(test)
                     if bad_tests and bad_parcs:
@@ -1485,7 +1485,7 @@ class MneExperiment(FileTree):
                 # epochs
                 for epoch in invalid_cache['epochs']:
                     rm['evoked-file'].add({'epoch': epoch})
-                    for cov, cov_params in self._covs.iteritems():
+                    for cov, cov_params in self._covs.items():
                         if cov_params.get('epoch') != epoch:
                             continue
                         analysis = '* %s *' % cov
@@ -1521,7 +1521,7 @@ class MneExperiment(FileTree):
 
                 # find actual files to delete
                 files = set()
-                for temp, arg_dicts in rm.iteritems():
+                for temp, arg_dicts in rm.items():
                     keys = self.find_keys(temp, False)
                     for args in arg_dicts:
                         kwargs = {k: args.get(k, '*') for k in keys}
@@ -1552,7 +1552,7 @@ class MneExperiment(FileTree):
                               "revalidate:  don't delete any cache files but "
                               "write a new cache-state file")
                         while True:
-                            command = raw_input(" > ")
+                            command = input(" > ")
                             if command in ('delete', 'abort', 'ignore', 'revalidate'):
                                 break
                             else:
@@ -1591,7 +1591,7 @@ class MneExperiment(FileTree):
             elif self.auto_delete_cache == 'debug':
                 print("Cache directory without history (validate|abort).")
                 while True:
-                    command = raw_input(" > ")
+                    command = input(" > ")
                     if command == 'abort':
                         raise RuntimeError("User aborted")
                     elif command == 'validate':
@@ -1938,7 +1938,7 @@ class MneExperiment(FileTree):
 
         if ndvar:
             parc = self.get('parc') or None
-            if isinstance(mask, basestring) and parc != mask:
+            if isinstance(mask, str) and parc != mask:
                 parc = mask
                 self.set(parc=mask)
             self.make_annot()
@@ -2039,7 +2039,7 @@ class MneExperiment(FileTree):
         collect_ind_stcs = ind_stc or ind_ndvar
 
         # make sure annot files are available (needed only for NDVar)
-        all_are_common_brain = all(v == common_brain for v in from_subjects.values())
+        all_are_common_brain = all(v == common_brain for v in list(from_subjects.values()))
         if (ind_ndvar and all_are_common_brain) or morph_ndvar:
             self.make_annot(mrisubject=common_brain)
         if ind_ndvar and not all_are_common_brain:
@@ -2050,7 +2050,7 @@ class MneExperiment(FileTree):
         mstcs = []
         invs = {}
         mm_cache = CacheDict(self.load_morph_matrix, 'mrisubject')
-        for subject, evoked in izip(ds['subject'], ds['evoked']):
+        for subject, evoked in zip(ds['subject'], ds['evoked']):
             subject_from = from_subjects[subject]
 
             # get inv
@@ -2082,7 +2082,7 @@ class MneExperiment(FileTree):
 
         # add to Dataset
         src = self.get('src')
-        parc = mask if isinstance(mask, basestring) else self.get('parc') or None
+        parc = mask if isinstance(mask, str) else self.get('parc') or None
         mri_sdir = self.get('mri-sdir')
         # for name, key in izip(do, keys):
         if ind_stc:
@@ -2136,7 +2136,7 @@ class MneExperiment(FileTree):
                 ds[name.strip()] = as_vardef_var(ds.eval(vdef))
         elif isinstance(vardef, dict):
             new = {}
-            for name, definition in vardef.iteritems():
+            for name, definition in vardef.items():
                 if isinstance(definition, str):
                     new[name] = as_vardef_var(ds.eval(definition))
                 else:
@@ -2239,7 +2239,7 @@ class MneExperiment(FileTree):
             print('\n'.join(paths))
             cmd = 'x'
             while cmd not in 'yn':
-                cmd = raw_input("Proceed ([y]/n)? ")
+                cmd = input("Proceed ([y]/n)? ")
             if cmd == 'n':
                 print("Abort.")
                 return
@@ -2344,7 +2344,7 @@ class MneExperiment(FileTree):
         """
         if exclude is True:
             exclude = self.exclude.get(field, None)
-        elif isinstance(exclude, basestring):
+        elif isinstance(exclude, str):
             exclude = (exclude,)
 
         if field == 'mrisubject':
@@ -2437,7 +2437,7 @@ class MneExperiment(FileTree):
         if len(self._sessions) > 1:
             ds[:, 'session'] = ds.info['session']
 
-        for name, coding in self.variables.iteritems():
+        for name, coding in self.variables.items():
             ds[name] = ds['trigger'].as_factor(coding, name)
 
         # add subject label
@@ -2453,7 +2453,7 @@ class MneExperiment(FileTree):
             A Dataset with 'subject' entry.
         """
         subject = ds['subject']
-        for name, subjects in self.groups.iteritems():
+        for name, subjects in self.groups.items():
             ds[name] = Var(subject.isin(subjects))
 
     def load_annot(self, **state):
@@ -2632,7 +2632,7 @@ class MneExperiment(FileTree):
             Override the epoch's ``tmax`` parameter.
         """
         if ndvar:
-            if isinstance(ndvar, basestring):
+            if isinstance(ndvar, str):
                 if ndvar != 'both':
                     raise ValueError("ndvar=%s" % repr(ndvar))
         subject, group = self._process_subject_arg(subject, kwargs)
@@ -3115,7 +3115,7 @@ class MneExperiment(FileTree):
         """
         if mask and not ndvar:
             raise NotImplemented("mask is only implemented for ndvar=True")
-        elif isinstance(mask, basestring):
+        elif isinstance(mask, str):
             self.set(parc=mask)
             mask = True
         fwd_file = self.get('fwd-file', make=True)
@@ -3502,7 +3502,7 @@ class MneExperiment(FileTree):
         # apply trigger-shift
         if epoch.trigger_shift:
             shift = epoch.trigger_shift
-            if isinstance(shift, basestring):
+            if isinstance(shift, str):
                 shift = ds.eval(shift)
             if isinstance(shift, Var):
                 shift = shift.x
@@ -3815,7 +3815,7 @@ class MneExperiment(FileTree):
             with self._temporary_state:
                 base = {l.name: l for l in self.load_annot(parc=p.base)}
             labels = []
-            for name, exp in p.labels.iteritems():
+            for name, exp in p.labels.items():
                 labels += combination_label(name, exp, base, subjects_dir)
         elif isinstance(p, SeededParcellation):
             if p.mask:
@@ -4085,7 +4085,7 @@ class MneExperiment(FileTree):
         bemsol = mne.make_bem_solution(bem)
         fwd = mne.make_forward_solution(raw, trans, src, bemsol,
                                         ignore_ref=True)
-        for s, s0 in izip(fwd['src'], src):
+        for s, s0 in zip(fwd['src'], src):
             if s['nuse'] != s0['nuse']:
                 msg = ("The forward solution %s contains fewer sources than "
                        "the source space. This could be due to a corrupted "
@@ -4185,7 +4185,7 @@ class MneExperiment(FileTree):
 
         if load_epochs:
             with self._temporary_state:
-                if isinstance(params['epoch'], basestring):
+                if isinstance(params['epoch'], str):
                     epoch = params['epoch']
                 elif isinstance(params['epoch'], dict):
                     epoch = params['epoch'][self.get('session')]
@@ -4578,7 +4578,7 @@ class MneExperiment(FileTree):
             if is_fake_mri(self.get('mri-dir')):
                 self.set(mrisubject=self.get('common_brain'), match=False)
 
-            labels = self._load_labels().values()
+            labels = list(self._load_labels().values())
             dsts = [self._make_plot_label_dst(surf, label.name)
                     for label in labels]
         if not redo and all(exists(dst) for dst in dsts):
@@ -4908,19 +4908,19 @@ class MneExperiment(FileTree):
             src = ds.pop('src')
             if label_names is None:
                 label_keys = {k: as_legal_dataset_key(k) for k in src.source.parc.cells}
-                label_names = {v: k for k, v in label_keys.iteritems()}
+                label_names = {v: k for k, v in label_keys.items()}
                 if len(label_names) != len(label_keys):
                     raise RuntimeError("Label key conflict")
             elif set(label_keys) != set(src.source.parc.cells):
                 raise RuntimeError("Not all subjects have the same labels")
 
-            for name, key in label_keys.iteritems():
+            for name, key in label_keys.items():
                 ds[key] = src.summary(source=name)
             del src
             dss.append(ds)
         ds = combine(dss, incomplete='drop')
         # prune label_keys
-        for name, key in label_keys.iteritems():
+        for name, key in label_keys.items():
             if key not in ds:
                 del label_keys[name]
         ds.info['label_keys'] = label_keys
@@ -4965,7 +4965,7 @@ class MneExperiment(FileTree):
             label_results[label] = res
 
         if do_mcc:
-            cdists = [r._cdist for r in label_results.values()]
+            cdists = [r._cdist for r in list(label_results.values())]
             merged_dist = _MergedTemporalClusterDist(cdists)
         else:
             merged_dist = None
@@ -5326,7 +5326,7 @@ class MneExperiment(FileTree):
         --------
         make_bad_channels : set bad channels for a single session
         """
-        n_chars = max(map(len, self._sessions))
+        n_chars = max(list(map(len, self._sessions)))
         # collect bad channels
         bads = set()
         sessions = []
@@ -5365,7 +5365,7 @@ class MneExperiment(FileTree):
             if idx == len(values):
                 idx = -1
         else:
-            for idx in xrange(len(values)):
+            for idx in range(len(values)):
                 if values[idx] > current:
                     break
             else:
@@ -5533,7 +5533,7 @@ class MneExperiment(FileTree):
             self.set(model='')
             for subject in self.iter_range(s_start, s_stop):
                 cov = self.load_cov()
-                picks = range(len(cov.ch_names))
+                picks = list(range(len(cov.ch_names)))
                 ds = self.load_evoked(baseline=True)
                 whitened_evoked = mne.whiten_evoked(ds[0, 'evoked'], cov, picks)
                 gfp = whitened_evoked.data.std(0)
@@ -5545,7 +5545,7 @@ class MneExperiment(FileTree):
         title = "Whitened Global Field Power (%s)" % self.get('cov')
         fig = plot._base.Figure(1, title, h=7, run=run)
         ax = fig._axes[0]
-        for subject, gfp in izip(subjects, gfps):
+        for subject, gfp in zip(subjects, gfps):
             ax.plot(whitened_evoked.times, gfp, label=subject,
                     color=colors[subject])
         ax.legend(loc='right')
@@ -5613,7 +5613,7 @@ class MneExperiment(FileTree):
 
     def plot_label(self, label, surf='inflated', w=600, clear=False):
         """Plot a label"""
-        if isinstance(label, basestring):
+        if isinstance(label, str):
             label = self.load_label(label)
         title = label.name
 
@@ -5696,7 +5696,7 @@ class MneExperiment(FileTree):
             Pick the normal component of the estimated current vector (default
             False).
         """
-        if not isinstance(ori, basestring):
+        if not isinstance(ori, str):
             ori = 'loose%s' % str(ori)[1:]
         items = [ori, str(snr), method]
 
@@ -5973,7 +5973,7 @@ class MneExperiment(FileTree):
 
         # whether they are equal between sessions
         bad_by_s = {}
-        for (subject, session), bads in bad_channels.iteritems():
+        for (subject, session), bads in bad_channels.items():
             if subject in bad_by_s:
                 if bad_by_s[subject] != bads:
                     sessions_congruent = False

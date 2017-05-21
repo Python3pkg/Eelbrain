@@ -14,6 +14,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .._data_obj import Dataset, NDVar, Var, isdatalist, isdatacontainer, isuv
+from functools import reduce
 
 
 class TempDir(str):
@@ -38,11 +39,11 @@ def assert_dataset_equal(ds1, ds2, msg="Datasets unequal", decimal=None):
     decimal : None | int
         Desired precision (default is exact match).
     """
-    assert_equal(ds1.keys(), ds2.keys(), "%s: different keys (%s vs %s)" %
-                 (msg, ds1.keys(), ds2.keys()))
-    for k in ds1.keys():
+    assert_equal(list(ds1.keys()), list(ds2.keys()), "%s: different keys (%s vs %s)" %
+                 (msg, list(ds1.keys()), list(ds2.keys())))
+    for k in list(ds1.keys()):
         assert_dataobj_equal(ds1[k], ds2[k], msg=msg, decimal=decimal)
-    assert_equal(ds1.info.keys(), ds2.info.keys(), "%s: keys in info" % msg)
+    assert_equal(list(ds1.info.keys()), list(ds2.info.keys()), "%s: keys in info" % msg)
 
 
 def assert_dataobj_equal(d1, d2, msg="Data-objects unequal", decimal=None):
@@ -89,7 +90,7 @@ def assert_dataobj_equal(d1, d2, msg="Data-objects unequal", decimal=None):
                                  "values, average difference=%s." %
                                  (msg, n_different, n, mean_diff))
     elif isdatalist(d1):
-        for i in xrange(len(d1)):
+        for i in range(len(d1)):
             assert_equal(d1[i], d2[i], "%s unequal values" % msg)
 
 

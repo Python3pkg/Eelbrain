@@ -13,4 +13,4 @@ table.cell("Fur")
 table.cell("Hotdog Meat")
 
 # print the string representation
-print table
+print(table)

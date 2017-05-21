@@ -9,9 +9,9 @@
 #  - listens to Document changes
 #  - issues commands to Model
 
-from __future__ import division
 
-from itertools import izip, repeat
+
+from itertools import repeat
 from math import ceil
 import re
 
@@ -106,11 +106,11 @@ class Document(FileDocument):
 
         # find unique epoch labels
         if 'index' in ds:
-            labels = map(str, ds['index'])
+            labels = list(map(str, ds['index']))
             if 'epoch' in ds:
-                labels = map(' '.join, izip(ds['epoch'], labels))
+                labels = list(map(' '.join, zip(ds['epoch'], labels)))
         else:
-            labels = map(str, xrange(len(epochs)))
+            labels = list(map(str, range(len(epochs))))
         self.epoch_labels = tuple(labels)
 
         # global mean (which is not modified by ICA)
@@ -264,9 +264,9 @@ class Frame(FileFrame):
         self.canvas_sizer.SetItemMinSize(self.canvas, size)
 
         # plot
-        axes = tuple(fig.add_subplot(n_v, n_h, i) for i in xrange(1, n + 1))
+        axes = tuple(fig.add_subplot(n_v, n_h, i) for i in range(1, n + 1))
         # bgs = tuple(ax.patch)
-        for i, ax, c, accept in izip(xrange(n), axes, self.doc.components, self.doc.accept):
+        for i, ax, c, accept in zip(range(n), axes, self.doc.components, self.doc.accept):
             _ax_topomap(ax, [c], None)
             ax.text(0.5, 1, "# %i" % i, ha='center', va='top')
             p = Rectangle((0, 0), 1, 1, color=COLOR[accept], zorder=-1)
@@ -286,7 +286,7 @@ class Frame(FileFrame):
         elif isinstance(index, slice):
             start = index.start or 0
             stop = index.stop or len(self.doc.components)
-            index = xrange(start, stop)
+            index = range(start, stop)
         elif index.dtype.kind == 'b':
             index = np.nonzero(index)[0]
 
@@ -497,7 +497,7 @@ class Frame(FileFrame):
 
     def PlotConditionAverages(self, parent):
         "Prompt for model and plot condition averages"
-        factors = [n for n, v in self.doc.ds.iteritems() if
+        factors = [n for n, v in self.doc.ds.items() if
                    isinstance(v, Factor)]
         if len(factors) == 0:
             wx.MessageBox("The dataset that describes the epochs does not "
@@ -532,7 +532,7 @@ class Frame(FileFrame):
 
         ds = self.doc.ds.aggregate(plot_model, drop_bad=True)
         titles = [' '.join(ds[i, f] for f in use) + ' (n=%i)' % ds[i, 'n'] for
-                  i in xrange(ds.n_cases)]
+                  i in range(ds.n_cases)]
         self._PlotButterfly(ds['epochs'], titles)
 
     def PlotEpochButterfly(self, i_epoch):
@@ -554,11 +554,11 @@ class Frame(FileFrame):
             clean -= self.doc.global_mean
 
         if original.has_case:
-            if isinstance(title, basestring):
+            if isinstance(title, str):
                 title = repeat(title, len(original))
             if vmax is None:
                 vmax = 1.1 * max(abs(original.min()), original.max())
-            for data, title_ in izip(izip(original, clean), title):
+            for data, title_ in zip(zip(original, clean), title):
                 plot.TopoButterfly(data, vmax=vmax, title=title_,
                                    axtitle=("Original", "Cleaned"))
         else:
@@ -679,7 +679,7 @@ class SourceFrame(FileFrameChild):
         left = axwidth / 2
         self.topo_plots = []
         self.topo_labels = []
-        for i in xrange(n_comp_actual):
+        for i in range(n_comp_actual):
             i_comp = self.i_first + i
             ax = self.figure.add_axes((left, 1 - (i + 1) * axheight, axwidth, axheight))
             p = _ax_topomap(ax, [self.doc.components[i_comp]], None)
@@ -712,11 +712,11 @@ class SourceFrame(FileFrameChild):
         ax.set_xlim((0, y.shape[1]))
         # line color
         reject_color = LINE_COLOR[False]
-        for i in xrange(n_comp_actual):
+        for i in range(n_comp_actual):
             if not self.doc.accept[i + self.i_first]:
                 self.lines[i].set_color(reject_color)
         # epoch demarcation
-        for x in xrange(elen, elen * self.n_epochs, elen):
+        for x in range(elen, elen * self.n_epochs, elen):
             ax.axvline(x, ls='--', c='k')
 
         self.ax_tc = ax
@@ -741,7 +741,7 @@ class SourceFrame(FileFrameChild):
         elif isinstance(index, slice):
             start = index.start or 0
             stop = index.stop or self.doc.n_epochs
-            index = xrange(start, stop)
+            index = range(start, stop)
         elif index.dtype.kind == 'b':
             index = np.nonzero(index)[0]
 
@@ -831,7 +831,7 @@ class SourceFrame(FileFrameChild):
             if dlg.ShowModal() == wx.ID_OK:
                 value = dlg.GetValue()
                 try:
-                    n_comp, n_epochs = map(int, value.split())
+                    n_comp, n_epochs = list(map(int, value.split()))
                 except Exception:
                     wx.MessageBox("Invalid entry: %r. Need two integers \n"
                                   "(e.g., '10 20').", "Invalid Entry",
@@ -873,7 +873,7 @@ class SourceFrame(FileFrameChild):
             i_first = self.n_comp_in_ica - 1
 
         n_comp_actual = min(self.n_comp_in_ica - i_first, self.n_comp)
-        for i in xrange(n_comp_actual):
+        for i in range(n_comp_actual):
             p = self.topo_plots[i]
             i_comp = i_first + i
             p.set_data([self.doc.components[i_comp]], True)
@@ -884,7 +884,7 @@ class SourceFrame(FileFrameChild):
         if n_comp_actual < self.n_comp:
             empty_data = self.doc.components[0].copy()
             empty_data.x.fill(0)
-            for i in xrange(n_comp_actual, self.n_comp):
+            for i in range(n_comp_actual, self.n_comp):
                 p = self.topo_plots[i]
                 p.set_data([empty_data])
                 p.ax.i_comp = -1
@@ -914,7 +914,7 @@ class SourceFrame(FileFrameChild):
         if pad_time or pad_comp:
             y = np.pad(y, ((0, pad_comp), (0, pad_time)), 'constant')
 
-        for line, data in izip(self.lines, y):
+        for line, data in zip(self.lines, y):
             line.set_ydata(data)
         self.ax_tc.set_xticklabels(tick_labels)
         self.canvas.draw()

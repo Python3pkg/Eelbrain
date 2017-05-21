@@ -1,5 +1,5 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
+
 
 from nose.tools import eq_, assert_almost_equal
 from numpy.testing import assert_array_equal

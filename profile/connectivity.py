@@ -16,4 +16,4 @@ struct[::2] = False
 conn = src.source.connectivity()
 criteria = None
 
-print "tnd._label_clusters_binary(bin_map, out, struct, False, bin_map.shape, conn, criteria)"
+print("tnd._label_clusters_binary(bin_map, out, struct, False, bin_map.shape, conn, criteria)")

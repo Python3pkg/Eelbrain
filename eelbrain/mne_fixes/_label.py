@@ -89,7 +89,7 @@ def write_labels_to_annot(labels, subject=None, parc=None, overwrite=False,
                 labels_by_color[tuple(color)].append(label.name)
 
             # check label colors
-            for color, names in labels_by_color.items():
+            for color, names in list(labels_by_color.items()):
                 if color == no_color_rgb:
                     continue
 
@@ -114,7 +114,7 @@ def write_labels_to_annot(labels, subject=None, parc=None, overwrite=False,
                 default_colors = _n_colors(n_hemi_labels, bytes_=True,
                                            cmap=colormap)
                 safe_color_i = 0  # keep track of colors known to be in hemi_colors
-                for i in xrange(n_hemi_labels):
+                for i in range(n_hemi_labels):
                     if ctab[i, 0] == -1:
                         color = default_colors[i]
                         # make sure to add no duplicate color

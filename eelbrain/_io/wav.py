@@ -41,7 +41,7 @@ def load_wav(filename=None, name=None):
                                "NDVar", FILETYPES)
         if not filename:
             return
-    elif not isinstance(filename, basestring):
+    elif not isinstance(filename, str):
         raise TypeError("filename must be string, got %s" % repr(filename))
     elif not os.path.exists(filename):
         _, ext = os.path.splitext(filename)
@@ -87,7 +87,7 @@ def save_wav(ndvar, filename=None, toint=False):
         below = data < -2**15
         if np.any(above) or np.any(below):
             n = np.sum(above) + np.sum(below)
-            print("WARNING: clipping %i samples" % n)
+            print(("WARNING: clipping %i samples" % n))
             data[above] = 2**15 - 1
             data[below] = -2**15
 

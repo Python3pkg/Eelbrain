@@ -1,9 +1,9 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
 """Statistical tests for univariate variables"""
-from __future__ import division
+
 
 import itertools
-from itertools import izip
+
 
 import numpy as np
 import scipy.stats
@@ -189,12 +189,12 @@ def star(p_list, out=str, levels=True, trend=False, eq_strlen=False):
         levels = {.05: '*', .01: '**', .001: '***'}
         if trend is True:
             levels[.1] = "`"
-        elif isinstance(trend, basestring):
+        elif isinstance(trend, str):
             levels[.1] = trend
     elif trend:
         raise AssertionError("'trend' kwarg only meaningful when levels is True")
 
-    a_levels = sorted(levels.keys(), reverse=True)
+    a_levels = sorted(list(levels.keys()), reverse=True)
     symbols = [''] + [levels[p] for p in a_levels]
 
     # allow input (p_list) to contain single p-value
@@ -368,7 +368,7 @@ def ttest(Y, X=None, against=0, match=None, sub=None, corr='Hochberg',
     table.midrule()
 
     # body
-    for name, diff, t, mark, df, p, p_adj in izip(names, diffs, ts, stars, dfs, ps, ps_adjusted):
+    for name, diff, t, mark, df, p, p_adj in zip(names, diffs, ts, stars, dfs, ps, ps_adjusted):
         table.cell(name)
         table.cell(diff)
         table.cell(fmtxt.stat(t, stars=mark, of=3))
@@ -569,9 +569,9 @@ def pairwise(Y, X, match=None, sub=None, ds=None,  # data in
 
     # tex_df = fmtxt.Element(df, "_", digits=0)
     if corr and not mirror:
-        subrows = range(3)
+        subrows = list(range(3))
     else:
-        subrows = range(2)
+        subrows = list(range(2))
 
     for row in range(0, k - 1 + mirror):
         for subrow in subrows:  # contains t/p
@@ -714,7 +714,7 @@ def correlations(y, x, cat=None, sub=None, ds=None, asds=False):
     """
     sub = assub(sub, ds)
     y = asvar(y, sub, ds)
-    if isinstance(x, (Var, basestring)):
+    if isinstance(x, (Var, str)):
         x = (x,)
         print_x_name = False
     else:
@@ -854,7 +854,7 @@ class bootstrap_pairwise(object):
             comp_names = []
             one_group = np.arange(group_size)
             groups = [one_group + i * group_size for i in range(n_groups)]
-            for i, (g1, g2) in enumerate(itertools.combinations(range(n_groups), 2)):
+            for i, (g1, g2) in enumerate(itertools.combinations(list(range(n_groups)), 2)):
                 group_1 = groups[g1]
                 group_2 = groups[g2]
                 diffs = ordered[:, group_1] - ordered[:, group_2]
@@ -908,7 +908,7 @@ class bootstrap_pairwise(object):
         stars_parametric = star(p_corr)
         stars_boot = star(self._p_boot)
 
-        for name, t, p1, pc, s1, p2, s2 in izip(self._comp_names, self.t,
+        for name, t, p1, pc, s1, p2, s2 in zip(self._comp_names, self.t,
                                                 self._p_parametric, p_corr,
                                                 stars_parametric,
                                                 self._p_boot, stars_boot):

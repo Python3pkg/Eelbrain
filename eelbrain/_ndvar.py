@@ -1,6 +1,6 @@
 """NDVar operations"""
 from collections import defaultdict
-from itertools import izip
+
 from math import floor
 
 import mne
@@ -97,7 +97,7 @@ def convolve(h, x):
             data = np.convolve(h.x, x.x)
         else:
             data = None
-            for h_i, x_i in izip(h.get_data((hdim.name, 'time')),
+            for h_i, x_i in zip(h.get_data((hdim.name, 'time')),
                                  x.get_data((xdim.name, 'time'))):
                 if data is None:
                     data = np.convolve(h_i, x_i)
@@ -114,7 +114,7 @@ def convolve(h, x):
         return NDVar(data, (xt,), x.info.copy(), x.name)
     else:
         out = None
-        for h_, x_ in izip(h, x):
+        for h_, x_ in zip(h, x):
             if out is None:
                 out = convolve(h_, x_)
             else:
@@ -271,7 +271,7 @@ def find_intervals(ndvar):
     if ndvar.x[-1]:
         offsets = np.append(offsets, ndvar.time.tstop)
 
-    return tuple(izip(onsets, offsets))
+    return tuple(zip(onsets, offsets))
 
 
 def neighbor_correlation(x, dim='sensor', obs='time', name=None):
@@ -312,7 +312,7 @@ def neighbor_correlation(x, dim='sensor', obs='time', name=None):
     data = x.get_data((dim, obs))
     cc = np.corrcoef(data)
     y = np.empty(len(dim_obj))
-    for i in xrange(len(dim_obj)):
+    for i in range(len(dim_obj)):
         y[i] = np.mean(cc[i, neighbors[i]])
 
     info = cs.set_info_cs(x.info, cs.stat_info('r'))

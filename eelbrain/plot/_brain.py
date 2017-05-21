@@ -1,9 +1,9 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import division
+
 
 from distutils.version import LooseVersion
 from functools import partial
-from itertools import izip
+
 import os
 from tempfile import mkdtemp
 from warnings import warn
@@ -138,8 +138,8 @@ def annot_legend(lh, rh, *args, **kwargs):
     """
     _, lh_colors, lh_names = read_annot(lh)
     _, rh_colors, rh_names = read_annot(rh)
-    lh_colors = dict(izip(lh_names, lh_colors[:, :4] / 255.))
-    rh_colors = dict(izip(rh_names, rh_colors[:, :4] / 255.))
+    lh_colors = dict(zip(lh_names, lh_colors[:, :4] / 255.))
+    rh_colors = dict(zip(rh_names, rh_colors[:, :4] / 255.))
     names = set(lh_names)
     names.update(rh_names)
     colors = {}
@@ -381,7 +381,7 @@ def _surfer_brain(data, subject='fsaverage', surf='smoothwm', hemi='split',
     """
     from ._brain_fix import Brain
 
-    if isinstance(views, basestring):
+    if isinstance(views, str):
         views = [views]
     elif not isinstance(views, list):
         views = list(views)
@@ -496,7 +496,7 @@ def surfer_brain(src, cmap=None, vmin=None, vmax=None, surf='smoothwm',
         subjects_dir = src.source.subjects_dir
 
     # colormap
-    if cmap is None or isinstance(cmap, basestring):
+    if cmap is None or isinstance(cmap, str):
         epochs = ((src,),)
         cmaps = find_fig_cmaps(epochs, cmap, alpha=True)
         vlims = find_fig_vlims(epochs, vmax, vmin, cmaps)
@@ -822,8 +822,8 @@ class _BinTable(EelFigure, ColorBarMixin):
                                            parallel=parallel,
                                            smoothing_steps=smoothing_steps,
                                            mask=mask)
-        for row in xrange(n_rows):
-            for column in xrange(n_columns):
+        for row in range(n_rows):
+            for column in range(n_columns):
                 ax = self._axes[row * n_columns + column]
                 ax.imshow(ims[row][column])
 
@@ -1103,9 +1103,9 @@ def _bin_table_ims(data, hemi, views, brain_func):
         brain = brain_func(hemi)
 
         hemi_lines = [[] for _ in views]
-        for i in xrange(len(data.time)):
+        for i in range(len(data.time)):
             brain.set_data_time_index(i)
-            for line, view in izip(hemi_lines, views):
+            for line, view in zip(hemi_lines, views):
                 brain.show_view(view)
                 im = brain.screenshot_single('rgba', True)
                 line.append(im)

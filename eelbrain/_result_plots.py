@@ -1,5 +1,5 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from itertools import izip
+
 from math import floor, log10
 import os
 
@@ -89,7 +89,7 @@ class ClusterPlotter(object):
             if not self._is_anova:
                 raise TypeError("ids can not be dict for results other than ANOVA")
             out = []
-            for effect, cids in ids.iteritems():
+            for effect, cids in ids.items():
                 if isinstance(cids, float):
                     out.extend(self._ids_for_p(cids, effect))
                 else:
@@ -107,7 +107,7 @@ class ClusterPlotter(object):
             clusters[:, 'effect'] = effect
 
         if self._is_anova:
-            return zip(clusters['effect'], clusters['id'])
+            return list(zip(clusters['effect'], clusters['id']))
         else:
             return clusters['id']
 
@@ -164,7 +164,7 @@ class ClusterPlotter(object):
         ids = self._ids(ids)
         clusters = self._get_clusters(ids)
         clusters_spatial = [c.sum('time') for c in clusters]
-        if isinstance(views, basestring):
+        if isinstance(views, str):
             views = (views,)
 
         # vmax
@@ -174,7 +174,7 @@ class ClusterPlotter(object):
 
         # anatomical extent
         brain_colorbar_done = False
-        for cid, cluster in izip(ids, clusters_spatial):
+        for cid, cluster in zip(ids, clusters_spatial):
             name = cname(cid)
             if prefix:
                 name = prefix + ' ' + name

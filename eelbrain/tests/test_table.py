@@ -1,5 +1,5 @@
 # Author: Christian Brodbeck <christianbrodbeck@nyu.edu>
-from __future__ import print_function
+
 from nose.tools import eq_, ok_, assert_is_instance, assert_raises
 from eelbrain._utils.testing import assert_dataobj_equal
 from numpy.testing import assert_array_equal

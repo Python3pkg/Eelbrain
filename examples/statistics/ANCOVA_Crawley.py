@@ -32,10 +32,10 @@ genot = Factor(np.arange(6).repeat(4), name="Genotype")
 hrs = Var([8, 12, 16, 24]*6, name="Hours")
 
 # show the model
-print hrs * genot
+print(hrs * genot)
 
 # print ANOVA table
-print test.anova(Y, hrs*genot, title="ANOVA")
+print(test.anova(Y, hrs*genot, title="ANOVA"))
 
 # plot the slopes
 plot.Regression(Y, hrs, genot)

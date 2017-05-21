@@ -28,7 +28,7 @@ def show_text_dialog(parent, text, caption):
     "Create and show a ScrolledMessageDialog"
     style = wx.CAPTION | wx.CLOSE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU
     dlg = ScrolledMessageDialog(parent, text, caption, style=style)
-    font = wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Inconsolata')
+    font = wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL, False, 'Inconsolata')
     dlg.text.SetFont(font)
 
     n_lines = dlg.text.GetNumberOfLines()
